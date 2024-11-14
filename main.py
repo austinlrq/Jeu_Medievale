@@ -1,6 +1,6 @@
 from src.controllers import *
 from src.models import *
-from src.views import *
+from src.views.menu import MenuPrincipal
 import tkinter as tk
 
 #gamecontroller = GameController()
@@ -14,6 +14,7 @@ for i in range(3):
 
 
 # Lancement de l'application
+
 root = tk.Tk()
 menu_principal = MenuPrincipal(root)
 root.mainloop()

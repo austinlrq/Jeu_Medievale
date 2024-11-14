@@ -6,9 +6,10 @@ class Seigneur(Noble):
     Classe représentant un seigneur, ayant des nobles comme vassaux.
     """
 
-    def __init__(self, nom: str, age: int, ressources: int, argent: int, bonheur: int):
-        super().__init__(nom, age, ressources, argent, bonheur)
+    def __init__(self, nom: str, age: int, ressources: int, argent: int, bonheur: int, couleur: str = "red" ):
+        super().__init__(nom, age, ressources, argent, bonheur, couleur)
         self.vassaux: List[Noble] = []
+        
 
     def ajouter_vassal(self, vassal: Noble):
         """Ajoute un noble en tant que vassal de ce seigneur."""

@@ -1,10 +1,12 @@
 import tkinter as tk
 from tkinter import font
-from ..models import *
-from ..controllers import *
+from ..views.generationmap import Map
+from ..views.Type import TYPE
+# from ..models import *
+# from ..controllers import *
 
 class JeuInterface:
-    def __init__(self, root, main_frame, game_controller):
+    def __init__(self, root, main_frame, game_controller, map:Map):
         self.root = root
         self.main_frame = main_frame
         self.gamecontroller = game_controller
@@ -22,8 +24,17 @@ class JeuInterface:
         # Cadre pour la carte (grille)
         self.map_frame = tk.Frame(self.main_frame, bg="#2E2E2E")
         self.map_frame.pack(expand=True, fill="both", padx=20, pady=10)
-        self.creer_grille_carte()
+        self.map = map
+        self.map_offset_x = 0  # Horizontal map offset
+        self.map_offset_y = 0  # Vertical map offset
+        self.start_x = 0       # Initial x position for dragging
+        self.start_y = 0       # Initial y position for dragging
 
+        # Create map and bind mouse events for dragging
+        self.creer_grille_carte(50)
+        self.canvas.bind("<ButtonPress-1>", self.on_map_click)
+        self.canvas.bind("<B1-Motion>", self.on_map_drag)
+        
         # Cadre pour les actions en bas
         self.actions_frame = tk.Frame(self.main_frame, height=50, bg="#3A3A3A")
         self.actions_frame.pack(fill="x", pady=(5, 10))
@@ -43,16 +54,76 @@ class JeuInterface:
         self.argent_label.config(text=f"Argent : {self.gamecontroller.joueur.argent}")
         self.ressources_label.config(text=f"Ressources : {self.gamecontroller.joueur.ressources}")
 
-    def creer_grille_carte(self):
-        self.canvas = tk.Canvas(self.map_frame, bg="#2E2E2E", highlightthickness=0)
-        self.canvas.pack(fill="both", expand=True)
-        rows, cols = 10, 10
-        cell_size = 50
-        for i in range(rows):
-            for j in range(cols):
-                x1, y1 = j * cell_size, i * cell_size
-                x2, y2 = x1 + cell_size, y1 + cell_size
-                self.canvas.create_rectangle(x1, y1, x2, y2, outline="#474747", fill="#3A3A3A")
+    def creer_grille_carte(self, cell_size):
+        self.cell_size = cell_size
+        self.canvas = tk.Canvas(self.map_frame, width=12 * cell_size, height=8 * cell_size, bg="#2E2E2E", highlightthickness=0)
+        self.canvas.pack(anchor="center")
+
+        self.draw_visible_map()
+
+    def draw_visible_map(self):
+        """Redraws the visible portion of the map based on the offset."""
+        self.canvas.delete("all")
+        colors = {
+            TYPE.plaine: "palegoldenrod",
+            TYPE.montagne: "gray",
+            TYPE.montagneclair: "lightgray",
+            TYPE.eau: "steelblue",
+            TYPE.eauclair: "lightskyblue",
+            TYPE.foret: "darkgreen",
+            TYPE.foretclair: "forestgreen",
+            TYPE.village: "brown"
+        }
+        
+        for row in range(8):  # Display 8 rows
+            for col in range(12):  # Display 12 columns
+                map_x = self.map_offset_x + col
+                map_y = self.map_offset_y + row
+                if 0 <= map_x < len(self.map.grid[0]) and 0 <= map_y < len(self.map.grid):
+                    cell = self.map.grid[map_y][map_x]
+                    x0, y0 = col * self.cell_size, row * self.cell_size
+                    x1, y1 = x0 + self.cell_size, y0 + self.cell_size
+                    color = colors.get(cell.type, "white")
+                    self.canvas.create_rectangle(x0, y0, x1, y1, fill=color, outline="")
+
+                    # Add ownership pattern if applicable
+                    if cell.proprio and cell.type != TYPE.village:
+                        for k in range(0, self.cell_size + 1, 10):
+                            self.canvas.create_line(x0 + k, y0, x0, y0 + k, fill=cell.proprio.couleur, width=1)
+                            self.canvas.create_line(x1 - k, y1, x1, y1 - k, fill=cell.proprio.couleur, width=1)
+
+    def on_map_click(self, event):
+        """Handles the start of a drag by storing the initial click position."""
+        self.start_x = event.x
+        self.start_y = event.y
+
+    def on_map_drag(self, event):
+        """Handles map dragging to update the offset and redraw the visible map."""
+        sensibilite = 5
+        dx = int(int(event.x - self.start_x) / sensibilite)
+        dy = int(int(event.y - self.start_y )/ sensibilite)
+
+        print(dx)
+
+        # Update offsets
+        new_offset_x = self.map_offset_x - dx
+        new_offset_y = self.map_offset_y - dy
+
+        # Boundaries check: Prevent scrolling beyond map limits
+        max_offset_x = len(self.map.grid[0]) - 12
+        max_offset_y = len(self.map.grid) - 8
+
+        # Ensure the offsets are within valid bounds
+        new_offset_x = max(min(new_offset_x, max_offset_x), 0)
+        new_offset_y = max(min(new_offset_y, max_offset_y), 0)
+
+        if new_offset_x != self.map_offset_x or new_offset_y != self.map_offset_y:
+            self.map_offset_x, self.map_offset_y = new_offset_x, new_offset_y
+            self.draw_visible_map()
+
+        # Update start position for smoother drag
+        self.start_x, self.start_y = event.x, event.y
+
 
     def afficher_actions(self):
         button_font = font.Font(family="Helvetica", size=12, weight="bold")

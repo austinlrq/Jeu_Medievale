@@ -7,9 +7,10 @@ class Noble(Personne):
     Classe représentant un noble, ayant des roturiers comme sujets.
     """
 
-    def __init__(self, nom: str, age: int, ressources: int, argent: int, bonheur: int):
+    def __init__(self, nom: str, age: int, ressources: int, argent: int, bonheur: int, couleur: str = "green"):
         super().__init__(nom, age, ressources, argent, bonheur)
         self.villages = []
+        self.couleur = couleur
 
     def ajouter_village(self, village):
         self.villages.append(village)

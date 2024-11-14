@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import font
-from .interface import JeuInterface
 from ..controllers import GameController
+from ..views.generationmap import Map
+from ..views.interface import JeuInterface
 
 class MenuPrincipal:
     def __init__(self, root):
@@ -56,6 +57,8 @@ class MenuPrincipal:
         self.menu_frame.pack_forget()  # Cache le menu principal
         self.game_frame = tk.Frame(self.root, bg="#2E2E2E")
         self.game_frame.pack(fill="both", expand=True)
-        game_controller=GameController()
+        game_controller=GameController(1)
+        map = Map(20,20,game_controller.liste_joueurs,15153)
+        # map.show_map(50)
         print(game_controller.joueur.argent)
-        JeuInterface(self.root, self.game_frame, game_controller)  # Affiche l'interface du jeu
+        JeuInterface(self.root, self.game_frame, game_controller, map)  # Affiche l'interface du jeu
