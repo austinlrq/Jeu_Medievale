@@ -128,6 +128,45 @@ class GameController:
 
         return total_personnes
 
+    def guerre(attaquant, defenseur):
+        """
+        Simule une guerre entre deux armées : l'attaquant et le défenseur.
+        Les deux sont des Nobles ou des Seigneurs avec des armées.
+
+        :param attaquant: Noble ou Seigneur lançant l'attaque.
+        :param defenseur: Noble ou Seigneur défendant son territoire.
+        :return: Résultat de la guerre sous forme de texte.
+        """
+        # Calculer les forces totales des deux armées
+        force_attaquante = sum(soldat.force for soldat in attaquant.armee)
+        force_defensive = sum(soldat.force for soldat in defenseur.armee)
+
+        print(f"L'armée de {attaquant.nom} attaque celle de {defenseur.nom} !")
+        print(f"Force attaquante : {force_attaquante}")
+        print(f"Force défensive : {force_defensive}")
+
+        # Déterminer le gagnant
+        if force_attaquante > force_defensive:
+            pertes = int(force_defensive / 2)  # L'attaquant subit des pertes équivalentes à la moitié de la force défensive
+            attaquant.armee = attaquant.armee[:len(attaquant.armee) - pertes]
+            defenseur.armee = []  # Défenseur perd toute son armée
+            print(f"{attaquant.nom} remporte la guerre contre {defenseur.nom} !")
+            return f"{attaquant.nom} a gagné et {defenseur.nom} a perdu toute son armée."
+
+        elif force_attaquante < force_defensive:
+            pertes = int(force_attaquante / 2)  # Le défenseur subit des pertes équivalentes à la moitié de la force attaquante
+            defenseur.armee = defenseur.armee[:len(defenseur.armee) - pertes]
+            attaquant.armee = []  # Attaquant perd toute son armée
+            print(f"{defenseur.nom} défend avec succès contre {attaquant.nom} !")
+            return f"{defenseur.nom} a gagné et {attaquant.nom} a perdu toute son armée."
+
+        else:
+            # En cas d'égalité, les deux armées s'annihilent
+            attaquant.armee = []
+            defenseur.armee = []
+            print("Les deux armées se sont annihilées dans une guerre acharnée !")
+            return "Match nul : les deux armées ont été détruites."
+
 
 
     # def verifier_declenchement_guerre(self, seigneurs: List[Seigneur]):

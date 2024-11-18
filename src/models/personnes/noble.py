@@ -1,5 +1,6 @@
 from .personne import Personne
 from .roturier import Roturier
+from .soldat import Soldat
 
 from typing import List
 
@@ -11,6 +12,7 @@ class Noble(Personne):
     def __init__(self, nom: str, age: int, ressources: int, argent: int, bonheur: int):
         super().__init__(nom, age, ressources, argent, bonheur)
         self.village_noble = None
+        self.armee: List[Soldat] = []  # Liste des soldats appartenant au Noble
 
     def ajouter_village(self, village):
         """Ajoute un village au noble s'il n'en a pas déjà un."""
@@ -35,7 +37,7 @@ class Noble(Personne):
             return total_impots
         return 0
     
-    def devenir_seigneur(self):
+    def devenir_seigneur(self, noble_vassalisé):
         from .seigneur import Seigneur
         """Transforme le noble en seigneur et promeut un nouvel habitant au rang de noble."""
         plus_riche = self.village_noble.trouver_plus_riche()
@@ -49,6 +51,7 @@ class Noble(Personne):
             # Retourne une instance de Seigneur avec le village géré par le nouveau noble
             seigneur = Seigneur(self.nom, self.age, self.ressources, self.argent, self.bonheur)
             seigneur.vassaux.append(nouveau_noble)
+            seigneur.vassaux.append(noble_vassalisé)
             print(f"{self.nom} devient seigneur, et {plus_riche.nom} devient noble et gère le village.")
             return seigneur
         else:

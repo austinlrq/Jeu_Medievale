@@ -19,6 +19,8 @@ class Map:
         self.selected_villages = []  # Liste des villages sélectionnés
         self.selected_action = None  # Action en cours
 
+        self.village_affiché = None
+
         # Canvas pour dessiner la carte
         self.canvas = tk.Canvas(root, width=cols * cell_size, height=rows * cell_size, bg="white")
         self.canvas.pack()
@@ -92,7 +94,7 @@ class Map:
 
         # Vérifier si la cellule est un village
         village = cell_data["objet"]
-        if village and cell_data["terrain"] == "village":
+        if village and cell_data["terrain"] == "village" and self.selected_action == "impot":
             if village not in self.gamecontroller.obtenir_villages_joueur(self.gamecontroller.joueur):
                 print(f"Le village {village.nom} ne vous appartient pas.")
                 return
@@ -149,8 +151,9 @@ class Map:
         village = self.get_village(event)  # Méthode pour récupérer le village
         if village:
             self.interface.mettre_a_jour_infos_village(village)
-        else:
-            self.interface.mettre_a_jour_infos_village(None)
+            self.interface.immigration_selectionnee = None
+        #else:
+            #self.interface.mettre_a_jour_infos_village(None)
 
     def get_village(self, event):
         """
@@ -164,4 +167,5 @@ class Map:
 
         # Vérifier si la cellule est un village
         village = cell_data["objet"]
+        self.village_affiché = village
         return village

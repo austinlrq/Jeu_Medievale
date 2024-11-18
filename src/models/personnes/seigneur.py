@@ -1,5 +1,6 @@
 from .noble import Noble
 from typing import List
+from .soldat import Soldat
 
 class Seigneur(Noble):
     """
@@ -9,6 +10,7 @@ class Seigneur(Noble):
     def __init__(self, nom: str, age: int, ressources: int, argent: int, bonheur: int):
         super().__init__(nom, age, ressources, argent, bonheur)
         self.vassaux: List[Noble] = []
+        self.armee: List[Soldat] = []  # Liste des soldats dans l'armée du Seigneur
 
     def ajouter_vassal(self, vassal: Noble):
         """Ajoute un noble en tant que vassal de ce seigneur."""

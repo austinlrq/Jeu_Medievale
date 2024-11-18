@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import font, Toplevel, ttk
 from ..models import *
-from ..controllers import *
+from src.controllers import *
 
 class JeuInterface:
     def __init__(self, root, main_frame, game_controller):
@@ -44,6 +44,8 @@ class JeuInterface:
         self.village_info_frame = tk.Frame(self.right_frame, bg="#2E2E2E", height=110)
         self.village_info_frame.pack_propagate(False)
         self.village_info_frame.pack(fill="x", pady=5, padx=5)
+        self.immigration_selectionnee = None
+        self.soldat_selectionnee = None
 
         self.village_info_label = tk.Label(
             self.village_info_frame,
@@ -104,6 +106,18 @@ class JeuInterface:
         """
         Met à jour les informations affichées sur le village sélectionné.
         """
+        for widget in self.village_info_frame.winfo_children():
+            widget.destroy()
+        self.village_info_label = tk.Label(
+            self.village_info_frame,
+            text="Clique droit sur un village pour voir ses informations",
+            bg="#2E2E2E",
+            fg="#F7F7F7",
+            font=("Helvetica", 12),
+            wraplength=200,
+            justify="left",
+        )
+        self.village_info_label.pack(fill="both", expand=True, padx=3, pady=(0,0))
         if village:
             infos = (
                 f"              {village.nom}\n\n"
@@ -113,7 +127,7 @@ class JeuInterface:
                 #f"Seigneur : {village.seigneur.nom if village.seigneur else 'Aucun'}"
             )
         else:
-            infos = "Aucun village sélectionné."
+            infos = "Clique droit sur un village pour voir ses informations"
 
         self.village_info_label.config(text=infos)
 
@@ -141,9 +155,10 @@ class JeuInterface:
         self.impot_bouton.pack(side="left", padx=10, pady=5)
 
         # Bouton Immigration avec un menu déroulant stylisé
-        self.immigration_bouton = tk.Menubutton(
+        self.immigration_bouton = tk.Button(
             self.actions_frame,
             text="Immigration",
+            command=self.afficher_options_immigration,
             font=button_font,
             bg="#1C6E8C",
             fg="white",
@@ -152,46 +167,145 @@ class JeuInterface:
             bd=0,
             padx=10,
             pady=5,
-            #relief="flat",
             height=1,
             width=8,
             anchor="center"  # Centrer le texte
         )
         self.immigration_bouton.pack(side="left", padx=10, pady=5)
 
-        # Ajouter le menu déroulant
-        self.immigration_menu = tk.Menu(
-            self.immigration_bouton,
-            tearoff=0,
-            bg="#3A3A3A",
-            fg="#F7F7F7",
+        # Bouton Immigration avec un menu déroulant stylisé
+        self.recruter_bouton = tk.Button(
+            self.actions_frame,
+            text="recruter",
+            command=self.afficher_options_recruter,
+            font=button_font,
+            bg="#1C6E8C",
+            fg="white",
             activebackground="#145374",
             activeforeground="white",
-            font=("Helvetica", 10)
+            bd=0,
+            padx=10,
+            pady=5,
+            height=1,
+            width=8,
+            anchor="center"  # Centrer le texte
         )
-        self.immigration_bouton.configure(menu=self.immigration_menu)
+        self.recruter_bouton.pack(side="left", padx=10, pady=5)
 
-        # Ajouter les options au menu déroulant
-        self.immigration_menu.add_command(label="Paysan", command=lambda: self.selectionner_action("paysan"))
-        self.immigration_menu.add_command(label="Roturier", command=lambda: self.selectionner_action("roturier"))
+    def afficher_options_immigration(self):
+        """
+        Affiche deux boutons (Paysan et Roturier) dans `village_info_frame`
+        pour sélectionner une option d'immigration.
+        """
+        if self.action_selectionnee == "paysan" or self.action_selectionnee == "roturier":
+            self.action_selectionnee = None
+            self.reset_bouton_couleurs()
+            return
+        # Vider le contenu précédent de `village_info_frame`
+        for widget in self.village_info_frame.winfo_children():
+            widget.destroy()
 
-    
+        if self.immigration_selectionnee == "immigration":
+                self.mettre_a_jour_infos_village(self.map.village_affiché)
+                self.immigration_selectionnee = None
+        
+        else:
+            # Bouton "Paysan"
+            paysan_bouton = tk.Button(
+                self.village_info_frame,
+                text="Paysan (-1 argent)",
+                command=lambda: self.selectionner_action("paysan"),
+                font=("Helvetica", 12),
+                bg="#1C6E8C",
+                fg="white",
+                activebackground="#145374",
+                activeforeground="white",
+                bd=0
+            )
+            paysan_bouton.pack(side="top", pady=5, padx=10)
+
+            # Bouton "Roturier"
+            roturier_bouton = tk.Button(
+                self.village_info_frame,
+                text="Roturier (-2 argent)",
+                command=lambda: self.selectionner_action("roturier"),
+                font=("Helvetica", 12),
+                bg="#1C6E8C",
+                fg="white",
+                activebackground="#145374",
+                activeforeground="white",
+                bd=0
+            )
+            roturier_bouton.pack(side="top", pady=5, padx=10)
+            self.immigration_selectionnee = "immigration"
+
+    def afficher_options_recruter(self):
+        """
+        Affiche deux boutons (Paysan et Roturier) dans `village_info_frame`
+        pour sélectionner une option d'immigration.
+        """
+        if self.action_selectionnee == "infanterie" or self.action_selectionnee == "cavalier":
+            self.action_selectionnee = None
+            self.reset_bouton_couleurs()
+            return
+        # Vider le contenu précédent de `village_info_frame`
+        for widget in self.village_info_frame.winfo_children():
+            widget.destroy()
+
+        if self.soldat_selectionnee == "recruter":
+                self.mettre_a_jour_infos_village(self.map.village_affiché)
+                self.soldat_selectionnee = None
+        
+        else:
+            # Bouton "infanterie"
+            infanterie_bouton = tk.Button(
+                self.village_info_frame,
+                text="infanterie (-1 argent)",
+                command=lambda: self.selectionner_action("infanterie"),
+                font=("Helvetica", 12),
+                bg="#1C6E8C",
+                fg="white",
+                activebackground="#145374",
+                activeforeground="white",
+                bd=0
+            )
+            infanterie_bouton.pack(side="top", pady=5, padx=10)
+
+            # Bouton "cavalier"
+            cavalier_bouton = tk.Button(
+                self.village_info_frame,
+                text="cavalier (-2 argent)",
+                command=lambda: self.selectionner_action("cavalier"),
+                font=("Helvetica", 12),
+                bg="#1C6E8C",
+                fg="white",
+                activebackground="#145374",
+                activeforeground="white",
+                bd=0
+            )
+            cavalier_bouton.pack(side="top", pady=5, padx=10)
+            self.immigration_selectionnee = "immigration"
     
     def selectionner_action(self, action):
         if self.action_selectionnee == action:
             self.action_selectionnee = None
             self.map.selected_action = None  # Réinitialiser l'action sur la carte
             self.reset_bouton_couleurs()
+            
         else:
             self.action_selectionnee = action
             self.map.selected_action = action  # Définir l'action sélectionnée
             self.reset_bouton_couleurs()
             if action == "impot":
                 self.impot_bouton.config(bg="#3498DB")
-            elif action == "immigration":
-                self.immigration_bouton.config(bg="#3498DB")
+                self.immigration_selectionnee = None
+            #elif action == "immigration":
+                #self.immigration_bouton.config(bg="#3498DB")
             elif action == "paysan" or action == "roturier":
                 self.immigration_bouton.config(bg="#3498DB")
+            elif action == "infanterie" or action == "cavalier":
+                self.immigration_bouton.config(bg="#3498DB")
+            self.mettre_a_jour_infos_village(self.map.village_affiché)
         liste = []
         for i in self.map.highlighted_cells:
             liste.append(i)
@@ -223,15 +337,22 @@ class JeuInterface:
     def executer_action_selectionnee(self):
         from src.models import Immigration
         if self.action_selectionnee != None:
-            if self.action_selectionnee == "impot" and self.map.selected_villages != []:
-                impot = 0
-                for i in self.map.selected_villages:
-                    impot += i.percevoir_impots()
-                self.gamecontroller.joueur.augmenter_ressources(impot)
-                self.gamecontroller.joueur.village_noble.produire_ressources()
-                self.ajouter_evenement("Action exécutée: Impot")
-                self.gamecontroller.appliquer_evenements(self.gamecontroller.joueur.village_noble.habitants)
-                self.mettre_a_jour_infos()
+            if self.action_selectionnee == "impot":
+                if self.map.selected_villages != []:
+                    self.ajouter_evenement("- - - - - - - - - - - - - - -")
+                    self.ajouter_evenement(f"|           Tour {self.gamecontroller.tour}          |")
+                    self.ajouter_evenement("- - - - - - - - - - - - - - -")
+                    self.ajouter_evenement("Action exécutée: Impot")
+                    impot = 0
+                    for i in self.map.selected_villages:
+                        impot += i.percevoir_impots()
+                    self.gamecontroller.joueur.augmenter_ressources(impot)
+                    self.gamecontroller.joueur.village_noble.produire_ressources()
+                    self.gamecontroller.appliquer_evenements(self.gamecontroller.joueur.village_noble.habitants)
+                    self.mettre_a_jour_infos()
+                    self.finir_tour()
+                else:
+                    self.ajouter_evenement("Vous devez choisir un village")
             
             elif self.action_selectionnee == "paysan" or self.action_selectionnee == "roturier":
                 immigration = Immigration(self.gamecontroller.joueur)
@@ -240,18 +361,23 @@ class JeuInterface:
                 elif self.action_selectionnee == "paysan":
                     immigration.immigrer("paysan")
                 self.ajouter_evenement("Action exécutée: Immigration")
-
-            self.action_selectionnee = None
-            self.reset_bouton_couleurs()
-            """reinitialiser les selections des cases"""
-            from .map import Map
-            liste = []
-            for i in self.map.highlighted_cells:
-                liste.append(i)
-            for j in liste:
-                self.map.unhighlight_cell(j[0],j[1])
-            self.map.selected_villages = []
-            self.gamecontroller.tour += 1
-            self.mettre_a_jour_infos()
-            self.gamecontroller.joueur.village_noble.afficher_statut()
+                self.finir_tour()
+    
+    def finir_tour(self):
+        self.action_selectionnee = None
+        self.immigration_selectionnee = None
+        self.reset_bouton_couleurs()
+        """reinitialiser les selections des cases"""
+        from .map import Map
+        liste = []
+        for i in self.map.highlighted_cells:
+            liste.append(i)
+        for j in liste:
+            self.map.unhighlight_cell(j[0],j[1])
+        self.map.selected_villages = []
+        self.gamecontroller.tour += 1
+        self.mettre_a_jour_infos()
+        self.gamecontroller.joueur.village_noble.afficher_statut()
+        self.mettre_a_jour_infos_village(self.map.village_affiché)
+        
     
