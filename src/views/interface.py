@@ -44,8 +44,7 @@ class JeuInterface:
         self.village_info_frame = tk.Frame(self.right_frame, bg="#2E2E2E", height=110)
         self.village_info_frame.pack_propagate(False)
         self.village_info_frame.pack(fill="x", pady=5, padx=5)
-        self.immigration_selectionnee = None
-        self.soldat_selectionnee = None
+        self.action_bouton_selectionnee = None
 
         self.village_info_label = tk.Label(
             self.village_info_frame,
@@ -84,6 +83,8 @@ class JeuInterface:
         self.population_label.pack(side="left", padx=15)
         self.tour_label = tk.Label(self.info_frame, text=f"Tour : {self.gamecontroller.tour}", bg="#3A3A3A", fg="#F7F7F7", font=label_font)
         self.tour_label.pack(side="right", padx=15)
+        self.armee_label = tk.Label(self.info_frame, text=f"Armée : {len(self.gamecontroller.joueur.armee)} soldats", bg="#3A3A3A", fg="#F7F7F7", font=label_font)
+        self.armee_label.pack(side="left", padx=15)
     
     def mettre_a_jour_infos(self):
         """Met à jour l'interface avec les infos actuelles du jeu."""
@@ -92,6 +93,7 @@ class JeuInterface:
         self.ressources_label.config(text=f"Ressources : {self.gamecontroller.joueur.ressources}")
         self.population_label.config(text=f"Nombre d'habitants : {self.gamecontroller.joueur.village_noble.population}")
         self.tour_label.config(text=f"Tour : {self.gamecontroller.tour}")
+        self.armee_label.config(text=f"Armée : {len(self.gamecontroller.joueur.armee)} soldats")
 
     def ajouter_evenement(self, texte):
         """
@@ -205,9 +207,9 @@ class JeuInterface:
         for widget in self.village_info_frame.winfo_children():
             widget.destroy()
 
-        if self.immigration_selectionnee == "immigration":
+        if self.action_bouton_selectionnee == "immigration":
                 self.mettre_a_jour_infos_village(self.map.village_affiché)
-                self.immigration_selectionnee = None
+                self.action_bouton_selectionnee = None
         
         else:
             # Bouton "Paysan"
@@ -237,7 +239,7 @@ class JeuInterface:
                 bd=0
             )
             roturier_bouton.pack(side="top", pady=5, padx=10)
-            self.immigration_selectionnee = "immigration"
+            self.action_bouton_selectionnee = "immigration"
 
     def afficher_options_recruter(self):
         """
@@ -252,7 +254,7 @@ class JeuInterface:
         for widget in self.village_info_frame.winfo_children():
             widget.destroy()
 
-        if self.soldat_selectionnee == "recruter":
+        if self.action_bouton_selectionnee == "recruter":
                 self.mettre_a_jour_infos_village(self.map.village_affiché)
                 self.soldat_selectionnee = None
         
@@ -284,7 +286,7 @@ class JeuInterface:
                 bd=0
             )
             cavalier_bouton.pack(side="top", pady=5, padx=10)
-            self.immigration_selectionnee = "immigration"
+            self.action_bouton_selectionnee = "recruter"
     
     def selectionner_action(self, action):
         if self.action_selectionnee == action:
@@ -298,13 +300,15 @@ class JeuInterface:
             self.reset_bouton_couleurs()
             if action == "impot":
                 self.impot_bouton.config(bg="#3498DB")
-                self.immigration_selectionnee = None
+                self.action_bouton_selectionnee = None
+            #elif action == "recruter":
+                #self.recruter_bouton.config(bg="#3498DB")
             #elif action == "immigration":
                 #self.immigration_bouton.config(bg="#3498DB")
             elif action == "paysan" or action == "roturier":
                 self.immigration_bouton.config(bg="#3498DB")
             elif action == "infanterie" or action == "cavalier":
-                self.immigration_bouton.config(bg="#3498DB")
+                self.recruter_bouton.config(bg="#3498DB")
             self.mettre_a_jour_infos_village(self.map.village_affiché)
         liste = []
         for i in self.map.highlighted_cells:
@@ -333,21 +337,24 @@ class JeuInterface:
             pady=5
         )
         self.tour_suivant_bouton.pack(side="right", padx=15)
-    
+
+    def afficher_tour_journal(self):
+        """Affiche le tour actuel dans le journal du jeu."""
+        self.ajouter_evenement("- - - - - - - - - - - - - - -")
+        self.ajouter_evenement(f"|           Tour {self.gamecontroller.tour}          |")
+        self.ajouter_evenement("- - - - - - - - - - - - - - -")
+
     def executer_action_selectionnee(self):
         from src.models import Immigration
         if self.action_selectionnee != None:
             if self.action_selectionnee == "impot":
                 if self.map.selected_villages != []:
-                    self.ajouter_evenement("- - - - - - - - - - - - - - -")
-                    self.ajouter_evenement(f"|           Tour {self.gamecontroller.tour}          |")
-                    self.ajouter_evenement("- - - - - - - - - - - - - - -")
+                    self.afficher_tour_journal()
                     self.ajouter_evenement("Action exécutée: Impot")
                     impot = 0
                     for i in self.map.selected_villages:
                         impot += i.percevoir_impots()
                     self.gamecontroller.joueur.augmenter_ressources(impot)
-                    self.gamecontroller.joueur.village_noble.produire_ressources()
                     self.gamecontroller.appliquer_evenements(self.gamecontroller.joueur.village_noble.habitants)
                     self.mettre_a_jour_infos()
                     self.finir_tour()
@@ -355,17 +362,29 @@ class JeuInterface:
                     self.ajouter_evenement("Vous devez choisir un village")
             
             elif self.action_selectionnee == "paysan" or self.action_selectionnee == "roturier":
-                immigration = Immigration(self.gamecontroller.joueur)
-                if self.action_selectionnee == "roturier":
-                    immigration.immigrer("roturier")
-                elif self.action_selectionnee == "paysan":
-                    immigration.immigrer("paysan")
+                self.afficher_tour_journal()
+                for village in self.map.selected_villages:
+                    immigration = Immigration(village.noble)
+                    if self.action_selectionnee == "roturier":
+                        immigration.immigrer("roturier")
+                    elif self.action_selectionnee == "paysan":
+                        immigration.immigrer("paysan")
                 self.ajouter_evenement("Action exécutée: Immigration")
                 self.finir_tour()
+
+            elif self.action_selectionnee == "infanterie" or self.action_selectionnee == "cavalier":
+                self.afficher_tour_journal()
+                if self.action_selectionnee == "infanterie":
+                    self.gamecontroller.joueur.recruter(Soldat("infanterie", 5, "infanterie"))
+                elif self.action_selectionnee == "cavalier":
+                    self.gamecontroller.joueur.recruter(Soldat("cavalier", 10, "cavalier"))
+                self.ajouter_evenement("Action exécutée: Recrutement")
+                self.finir_tour()    
     
     def finir_tour(self):
+        """reset les actions selectionnées"""
         self.action_selectionnee = None
-        self.immigration_selectionnee = None
+        self.action_bouton_selectionnee = None
         self.reset_bouton_couleurs()
         """reinitialiser les selections des cases"""
         from .map import Map
@@ -374,7 +393,11 @@ class JeuInterface:
             liste.append(i)
         for j in liste:
             self.map.unhighlight_cell(j[0],j[1])
+        print(self.map.highlighted_cells)
+        self.map.selected_action = None
         self.map.selected_villages = []
+
+        self.gamecontroller.joueur.produire_ressources()
         self.gamecontroller.tour += 1
         self.mettre_a_jour_infos()
         self.gamecontroller.joueur.village_noble.afficher_statut()

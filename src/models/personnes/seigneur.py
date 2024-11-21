@@ -16,6 +16,12 @@ class Seigneur(Noble):
         """Ajoute un noble en tant que vassal de ce seigneur."""
         self.vassaux.append(vassal)
 
+    def produire_ressources(self):
+        total = 0
+        for noble in self.nobles:
+            total += noble.produire_ressources()
+        return total
+
     def percevoir_impot(self):
         """
         Perçoit un impôt uniquement des nobles vassaux.

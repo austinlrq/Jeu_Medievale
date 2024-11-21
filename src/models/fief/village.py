@@ -3,11 +3,16 @@ class Village:
     def __init__(self, nom):
         self.nom = nom
         self.habitants = []  # Liste d'instances de Roturier et de Paysan
+        self.noble = None  # Instance de Noble
 
     def ajouter_habitant(self, habitant):
         """Ajoute un habitant au village."""
         self.habitants.append(habitant)
 
+    def ajouter_noble(self, noble):
+        """Ajoute un noble au village."""
+        self.noble = noble
+    
     @property
     def population(self):
         return len(self.habitants)

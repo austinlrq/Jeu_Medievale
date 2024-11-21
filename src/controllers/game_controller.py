@@ -71,7 +71,7 @@ class GameController:
             # Création d'un noble pour chaque village
             noble = Noble(f"Noble_{i}", 30, 100, 50, 5)
             noble.ajouter_village(village)
-
+            village.ajouter_noble(noble)
             # Ajouter le noble comme gestionnaire du village
             #village.ajouter_habitant(noble)
 

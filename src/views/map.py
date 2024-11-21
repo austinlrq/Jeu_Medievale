@@ -91,12 +91,13 @@ class Map:
 
         # Récupérer les données de la cellule
         cell_data = self.map_data[row][col]
-
+        action_nessecitant_case = ["impot", "paysan", "roturier", "immigration"]
         # Vérifier si la cellule est un village
         village = cell_data["objet"]
-        if village and cell_data["terrain"] == "village" and self.selected_action == "impot":
+        if village and cell_data["terrain"] == "village" and self.selected_action in action_nessecitant_case:
             if village not in self.gamecontroller.obtenir_villages_joueur(self.gamecontroller.joueur):
                 print(f"Le village {village.nom} ne vous appartient pas.")
+                self.interface.ajouter_evenement("Vous ne possedez pas ce village.")
                 return
             if village in self.selected_villages:
                 self.selected_villages.remove(village)
