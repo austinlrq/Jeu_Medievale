@@ -11,13 +11,19 @@ from src.models import *
 class GameController:
     def __init__(self):
         self.tour = 1
-        # Exemple d'initialisation de 5 villages avec 10 habitants chacun
+        self.couleurs_possibles = ["#0000FF",  # Bleu
+                            "#800080",  # Violet
+                            "#FFA500",  # Orange
+                            "#FFFFFF"]  # Blanc
         self.villages, self.nobles = self.creer_villages(2, 3)
+        self.seigneurs = []
         self.joueur = self.nobles[0]
         # Afficher le statut de chaque village
         for village in self.villages:
             village.afficher_statut()
+        self.joueur.augmenter_argent(1000)
         
+
         """self.roturier1 = Roturier("Roturier 1", 20, 10, 10, 10, 5)
         self.roturier2 = Roturier("Roturier 2", 20, 10, 10, 10, 5)
         self.paysan1 = Paysan("Paysan 1", 20, 20, 15, 5)
@@ -69,7 +75,7 @@ class GameController:
             village = Village(nom_village)
             
             # Création d'un noble pour chaque village
-            noble = Noble(f"Noble_{i}", 30, 100, 50, 5)
+            noble = Noble(f"Noble_{i}", 30, 100, 50, 5, self.couleurs_possibles[i])
             noble.ajouter_village(village)
             village.ajouter_noble(noble)
             # Ajouter le noble comme gestionnaire du village
@@ -128,7 +134,7 @@ class GameController:
 
         return total_personnes
 
-    def guerre(attaquant, defenseur):
+    def guerre(self, attaquant, defenseur):
         """
         Simule une guerre entre deux armées : l'attaquant et le défenseur.
         Les deux sont des Nobles ou des Seigneurs avec des armées.
@@ -151,13 +157,23 @@ class GameController:
             attaquant.armee = attaquant.armee[:len(attaquant.armee) - pertes]
             defenseur.armee = []  # Défenseur perd toute son armée
             print(f"{attaquant.nom} remporte la guerre contre {defenseur.nom} !")
-            return f"{attaquant.nom} a gagné et {defenseur.nom} a perdu toute son armée."
+            if isinstance(attaquant,Noble) and isinstance(defenseur,Noble):
+                nouv_attaquant = attaquant.devenir_seigneur(defenseur)
+                self.seigneurs.append(nouv_attaquant)
+                self.nobles.remove(attaquant)
+                print(nouv_attaquant)
+                return nouv_attaquant
+            if isinstance(attaquant,Seigneur) and isinstance(defenseur,Noble):
+                return
+                #return f"{attaquant.nom} a gagné et {defenseur.nom} a perdu toute son armée."
 
         elif force_attaquante < force_defensive:
             pertes = int(force_attaquante / 2)  # Le défenseur subit des pertes équivalentes à la moitié de la force attaquante
             defenseur.armee = defenseur.armee[:len(defenseur.armee) - pertes]
             attaquant.armee = []  # Attaquant perd toute son armée
             print(f"{defenseur.nom} défend avec succès contre {attaquant.nom} !")
+            self.seigneur = defenseur.devenir_seigneur(attaquant)
+            self.seigneurs.append(self.seigneur)
             return f"{defenseur.nom} a gagné et {attaquant.nom} a perdu toute son armée."
 
         else:

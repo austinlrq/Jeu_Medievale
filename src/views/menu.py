@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import font
 from .interface import JeuInterface
-from ..controllers import GameController
 
 class MenuPrincipal:
     def __init__(self, root):
@@ -56,6 +55,8 @@ class MenuPrincipal:
         self.menu_frame.pack_forget()  # Cache le menu principal
         self.game_frame = tk.Frame(self.root, bg="#2E2E2E")
         self.game_frame.pack(fill="both", expand=True)
+        from ..controllers import GameController
+
         game_controller=GameController()
         print(game_controller.joueur.argent)
         JeuInterface(self.root, self.game_frame, game_controller)  # Affiche l'interface du jeu
