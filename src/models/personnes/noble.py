@@ -18,6 +18,8 @@ class Noble(Personne):
         self.armee: List[Soldat] = []  # Liste des soldats appartenant au Noble
         self.seigneur = None  # Instance de Seigneur
         self.cases: List[Case] = []  # Liste des cases détenues par le Noble
+        self.capacite_habitants = 10  # Nombre maximum d'habitants dans le village
+        self.capacite_soldats = 5  # Nombre maximum de soldats dans l'armée
 
 
     def ajouter_village(self, village):

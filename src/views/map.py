@@ -117,6 +117,12 @@ class Map:
             TYPE.village: "#A67B5B"       # brown #a52a2a
         }
 
+        colors_batiments = {
+            "terrain": "#A67B5B",
+            "habitation": "#A67B5B",
+            "camp": "#A67B5B"
+        }
+        
         for row in range(self.nb_lignes_visibles):  # Dynamique pour les lignes
             for col in range(self.nb_colonnes_visibles):  # Dynamique pour les colonnes
                 map_x = self.map_compenser_x + col
@@ -125,15 +131,27 @@ class Map:
                     case = self.grid[map_y][map_x]
                     x0, y0 = col * self.case_size, row * self.case_size
                     x1, y1 = x0 + self.case_size, y0 + self.case_size
+                    if case.batiment!=None:
+                        color_batiment = colors_batiments.get(case.batiment, "white")
                     color = colors.get(case.type, "white")
                     # Appliquer une couleur spécifique si la case est en bordure
                     if map_x == 0 or map_y == 0 or map_x == len(self.grid[0]) - 1 or map_y == len(self.grid) - 1:
                         color = assombrir_couleur(color)
+                        if case.batiment!=None:
+                            color_batiment = assombrir_couleur(color_batiment)
                     elif map_x == 1 or map_y == 1 or map_x == len(self.grid[0]) - 2 or map_y == len(self.grid) - 2:
                         color = assombrir_couleur(color,.9)
-                    else:
-                        color = colors.get(case.type, "white")
+                        if case.batiment!=None:
+                            color_batiment = assombrir_couleur(color_batiment,.9)
+                    """else:
+                        if case.batiment!=None:
+                            color = colors_batiments.get(case.batiment, "white")
+                            print(color)
+                        else:
+                            color = colors.get(case.type, "white")"""
                     self.canvas.create_rectangle(x0, y0, x1, y1, fill=color, outline="")
+                    if case.batiment!=None:
+                        self.canvas.create_rectangle(x0+5, y0+5, x1-5, y1-5, fill=color_batiment, outline="")
                     #self.dessiner_bordures(case, x0, y0, x1, y1)
         self.mettre_a_jour_bordures()
         keys_list = list(self.highlighted_cases.keys())
@@ -160,6 +178,7 @@ class Map:
             return
         action_necessitant_village = ["impot", "paysan", "roturier", "immigration"]
         action_necessitant_territoire = ["acheter_case"]
+        action_construire = ["terrain", "habitation", "camp"]
 
         # Vérifier si la caseule est un village
         village = case_instance.village
@@ -179,25 +198,52 @@ class Map:
                 self.selected_villages.append(village)
                 self.highlight_case(case_instance.row, case_instance.col)
                 print(f"Village sélectionné : {village.nom}")
-        elif self.selected_action in action_necessitant_territoire and case_instance.proprietaire is None: #and self.gamecontroller.joueur.possede_case_adjacente(case_instance)
-            """if case_instance not in self.territoire_selectionne and len(self.territoire_selectionne)==1:
-                self.unhighlight_case(self.territoire_selectionne[0].row, self.territoire_selectionne[0].col)
-                self.territoire_selectionne = []
-                self.territoire_selectionne.append(case_instance)
-                self.highlight_case(case_instance.row, case_instance.col)"""
-            if case_instance not in self.territoire_selectionne:
-                self.territoire_selectionne.append(case_instance)
-                self.highlight_case(case_instance.row, case_instance.col)
-                print(f"Case sélectionnée : ({case_instance.row}, {case_instance.col})")
-            elif case_instance in self.territoire_selectionne:
-                self.territoire_selectionne.remove(case_instance)
-                self.unhighlight_case(case_instance.row, case_instance.col)
-                print(f"Case désélectionnée : ({case_instance.row}, {case_instance.col})")
-            else:
-                self.territoire_selectionne.remove(case_instance)
-                self.unhighlight_case(case_instance.row, case_instance.col)
-                print(f"Case désélectionnée : ({case_instance.row}, {case_instance.col})")
-            print("Ceci n'est pas un village.")
+        elif self.selected_action in action_construire:
+            if self.selected_action == "terrain" and case_instance.proprietaire is None: #and self.gamecontroller.joueur.possede_case_adjacente(case_instance)
+                """if case_instance not in self.territoire_selectionne and len(self.territoire_selectionne)==1:
+                    self.unhighlight_case(self.territoire_selectionne[0].row, self.territoire_selectionne[0].col)
+                    self.territoire_selectionne = []
+                    self.territoire_selectionne.append(case_instance)
+                    self.highlight_case(case_instance.row, case_instance.col)"""
+                if case_instance not in self.territoire_selectionne:
+                    self.territoire_selectionne.append(case_instance)
+                    self.highlight_case(case_instance.row, case_instance.col)
+                    print(f"Case sélectionnée : ({case_instance.row}, {case_instance.col})")
+                elif case_instance in self.territoire_selectionne:
+                    self.territoire_selectionne.remove(case_instance)
+                    self.unhighlight_case(case_instance.row, case_instance.col)
+                    print(f"Case désélectionnée : ({case_instance.row}, {case_instance.col})")
+                else:
+                    self.territoire_selectionne.remove(case_instance)
+                    self.unhighlight_case(case_instance.row, case_instance.col)
+                    print(f"Case désélectionnée : ({case_instance.row}, {case_instance.col})")
+            elif (self.selected_action == "habitation"  or self.selected_action == "camp"):
+                if case_instance.proprietaire != self.gamecontroller.joueur:
+                    self.interface.ajouter_evenement("Vous ne possedez pas ce territoire.")
+                    return
+                elif case_instance.type != TYPE.plaine:
+                    self.interface.ajouter_evenement("Vous ne pouvez pas construire ici.")
+                    return
+                elif case_instance.batiment:
+                    self.interface.ajouter_evenement("Un batiment est déjà présent ici.")
+                    return
+                if case_instance not in self.territoire_selectionne and len(self.territoire_selectionne)==1:
+                    self.unhighlight_case(self.territoire_selectionne[0].row, self.territoire_selectionne[0].col)
+                    self.territoire_selectionne = []
+                    self.territoire_selectionne.append(case_instance)
+                    self.highlight_case(case_instance.row, case_instance.col)
+                elif case_instance not in self.territoire_selectionne:
+                    self.territoire_selectionne.append(case_instance)
+                    self.highlight_case(case_instance.row, case_instance.col)
+                    print(f"Case sélectionnée : ({case_instance.row}, {case_instance.col})")
+                elif case_instance in self.territoire_selectionne:
+                    self.territoire_selectionne.remove(case_instance)
+                    self.unhighlight_case(case_instance.row, case_instance.col)
+                    print(f"Case désélectionnée : ({case_instance.row}, {case_instance.col})")
+                else:
+                    self.territoire_selectionne.remove(case_instance)
+                    self.unhighlight_case(case_instance.row, case_instance.col)
+                    print(f"Case désélectionnée : ({case_instance.row}, {case_instance.col})")
         elif type_case == TYPE.village and self.selected_action == "guerre" and self.territoires_adjacents(self.gamecontroller.joueur, case_instance.proprietaire)and case_instance.village not in self.gamecontroller.obtenir_villages_joueur(self.gamecontroller.joueur):
             if self.selected_action not in self.selected_villages and len(self.selected_villages)==1:
                 self.unhighlight_case(self.selected_villages[0].row, self.selected_villages[0].col)

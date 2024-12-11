@@ -41,14 +41,14 @@ class JeuInterface:
         self.right_frame.pack(side=tk.RIGHT, fill="y", padx=5)
 
         # Cadre pour les informations du village
-        self.village_info_frame = tk.Frame(self.right_frame, bg="#2E2E2E", height=110)
+        self.village_info_frame = tk.Frame(self.right_frame, bg="#2E2E2E", height=160)
         self.village_info_frame.pack_propagate(False)
         self.village_info_frame.pack(fill="x", pady=5, padx=5)
         self.action_bouton_selectionnee = None
 
         self.village_info_label = tk.Label(
             self.village_info_frame,
-            text="Clique droit sur un village pour voir ses informations",
+            text="Ctrl + Clique droit sur un village pour voir ses informations",
             bg="#2E2E2E",
             fg="#F7F7F7",
             font=("Helvetica", 12),
@@ -83,7 +83,7 @@ class JeuInterface:
         self.argent_label.pack(side="left", padx=15)
         self.ressources_label = tk.Label(self.info_frame, text=f"Ressources : {self.gamecontroller.joueur.ressources}", bg="#3A3A3A", fg="#F7F7F7", font=label_font)
         self.ressources_label.pack(side="left", padx=15)
-        self.population_label = tk.Label(self.info_frame, text=f"Nombre d'habitants : {self.gamecontroller.joueur.village_noble.population}", bg="#3A3A3A", fg="#F7F7F7", font=label_font)
+        self.population_label = tk.Label(self.info_frame, text=f"Habitants : {self.gamecontroller.joueur.village_noble.population}/{self.gamecontroller.joueur.capacite_habitants}", bg="#3A3A3A", fg="#F7F7F7", font=label_font)
         self.population_label.pack(side="left", padx=15)
         self.tour_label = tk.Label(self.info_frame, text=f"Tour : {self.gamecontroller.tour}", bg="#3A3A3A", fg="#F7F7F7", font=label_font)
         self.tour_label.pack(side="right", padx=15)
@@ -95,7 +95,7 @@ class JeuInterface:
         # Accède aux informations du joueur et du village depuis `etat_du_jeu`
         self.argent_label.config(text=f"Argent : {self.gamecontroller.joueur.argent}")
         self.ressources_label.config(text=f"Ressources : {self.gamecontroller.joueur.ressources}")
-        self.population_label.config(text=f"Nombre d'habitants : {self.gamecontroller.obtenir_nombre_total_personnes(self.gamecontroller.joueur)}")
+        self.population_label.config(text=f"Habitants : {self.gamecontroller.obtenir_nombre_total_personnes(self.gamecontroller.joueur)}/{self.gamecontroller.joueur.capacite_habitants}")
         self.tour_label.config(text=f"Tour : {self.gamecontroller.tour}")
         self.armee_label.config(text=f"Armée : {len(self.gamecontroller.joueur.armee)} soldats")
 
@@ -116,7 +116,7 @@ class JeuInterface:
             widget.destroy()
         self.village_info_label = tk.Label(
             self.village_info_frame,
-            text="CTRL + Clique droit sur un village pour voir ses informations",
+            text="Ctrl + Clique droit sur un village pour voir ses informations",
             bg="#2E2E2E",
             fg="#F7F7F7",
             font=("Helvetica", 12),
@@ -133,7 +133,7 @@ class JeuInterface:
                 #f"Seigneur : {village.seigneur.nom if village.seigneur else 'Aucun'}"
             )
         else:
-            infos = "Clique droit sur un village pour voir ses informations"
+            infos = "Ctrl + Clique droit sur un village pour voir ses informations"
 
         self.village_info_label.config(text=infos)
 
@@ -197,12 +197,12 @@ class JeuInterface:
             anchor="center"  # Centrer le texte
         )
         self.recruter_bouton.pack(side="left", padx=10, pady=5)
-
-        # Bouton pour acheter case
-        self.acheter_case_bouton = tk.Button(
+        
+        # Bouton pour contruire
+        self.construire_bouton = tk.Button(
             self.actions_frame,
-            text="acheter",
-            command=lambda: self.selectionner_action("acheter_case"),
+            text="construire",
+            command=lambda: self.afficher_options_construire("contruire"),
             font=button_font,
             bg="#1C6E8C",
             fg="white",
@@ -215,7 +215,7 @@ class JeuInterface:
             width=8,
             anchor="center"  # Centrer le texte
         )
-        self.acheter_case_bouton.pack(side="left", padx=10, pady=5)
+        self.construire_bouton.pack(side="left", padx=10, pady=5)
         
         # Bouton pour declarer la guerre
         self.guerre_bouton = tk.Button(
@@ -331,6 +331,64 @@ class JeuInterface:
             )
             cavalier_bouton.pack(side="top", pady=5, padx=10)
             self.action_bouton_selectionnee = "recruter"
+            
+    def afficher_options_construire(self,action):
+        if self.action_selectionnee == "terrain" or self.action_selectionnee == "habitation" or self.action_selectionnee == "camp":
+            self.action_selectionnee = None
+            self.reset_bouton_couleurs()
+            return
+        
+        # Vider le contenu précédent de `village_info_frame`
+        for widget in self.village_info_frame.winfo_children():
+            widget.destroy()
+
+        if self.action_bouton_selectionnee == "construire":
+                self.mettre_a_jour_infos_village(self.map.village_affiché)
+                self.action_bouton_selectionnee = None
+        
+        else:
+            # Bouton "infanterie"
+            terrain_bouton = tk.Button(
+                self.village_info_frame,
+                text="terrain (-5 argent)",
+                command=lambda: self.selectionner_action("terrain"),
+                font=("Helvetica", 12),
+                bg="#1C6E8C",
+                fg="white",
+                activebackground="#145374",
+                activeforeground="white",
+                bd=0
+            )
+            terrain_bouton.pack(side="top", pady=15, padx=10)
+
+            # Bouton "cavalier"
+            habitation_bouton = tk.Button(
+                self.village_info_frame,
+                text="habitation (-10 argent)",
+                command=lambda: self.selectionner_action("habitation"),
+                font=("Helvetica", 12),
+                bg="#1C6E8C",
+                fg="white",
+                activebackground="#145374",
+                activeforeground="white",
+                bd=0
+            )
+            habitation_bouton.pack(side="top", pady=5, padx=10)
+            
+            camp_bouton = tk.Button(
+                self.village_info_frame,
+                text="camp (-10 argent)",
+                command=lambda: self.selectionner_action("camp"),
+                font=("Helvetica", 12),
+                bg="#1C6E8C",
+                fg="white",
+                activebackground="#145374",
+                activeforeground="white",
+                bd=0
+            )
+            camp_bouton.pack(side="top", pady=15, padx=10)
+            
+            self.action_bouton_selectionnee = "contruire"
     
     def selectionner_action(self, action):
         if self.action_selectionnee == action:
@@ -358,10 +416,10 @@ class JeuInterface:
                 self.immigration_bouton.config(bg="#3498DB")
             elif action == "infanterie" or action == "cavalier":
                 self.recruter_bouton.config(bg="#3498DB")
-            elif action == "acheter_case":
-                self.acheter_case_bouton.config(bg="#3498DB")
             elif action == "guerre":
                 self.guerre_bouton.config(bg="#3498DB")
+            elif action == "terrain" or action == "habitation" or action == "camp":
+                self.construire_bouton.config(bg="#3498DB")
             self.mettre_a_jour_infos_village(self.map.village_affiché)
             
         liste = []
@@ -375,8 +433,8 @@ class JeuInterface:
         self.impot_bouton.config(bg="#1C6E8C")
         self.immigration_bouton.config(bg="#1C6E8C")
         self.recruter_bouton.config(bg="#1C6E8C")
-        self.acheter_case_bouton.config(bg="#1C6E8C")
         self.guerre_bouton.config(bg="#1C6E8C")
+        self.construire_bouton.config(bg="#1C6E8C")
 
     def tour_suivant(self):
         button_font = font.Font(family="Helvetica", size=12, weight="bold")
@@ -397,9 +455,14 @@ class JeuInterface:
 
     def afficher_tour_journal(self):
         """Affiche le tour actuel dans le journal du jeu."""
-        self.ajouter_evenement("- - - - - - - - - - - - - - -")
-        self.ajouter_evenement(f"|           Tour {self.gamecontroller.tour}          |")
-        self.ajouter_evenement("- - - - - - - - - - - - - - -")
+        if self.gamecontroller.tour <= 9:
+            self.ajouter_evenement("- - - - - - - - - - - - - - -")
+            self.ajouter_evenement(f"|           Tour {self.gamecontroller.tour}          |")
+            self.ajouter_evenement("- - - - - - - - - - - - - - -")
+        elif self.gamecontroller.tour <= 99:
+            self.ajouter_evenement("- - - - - - - - - - - - - - -")
+            self.ajouter_evenement(f"|          Tour {self.gamecontroller.tour}          |")
+            self.ajouter_evenement("- - - - - - - - - - - - - - -")
 
     def executer_action_selectionnee(self):
         from src.models import Immigration, Seigneur
@@ -416,53 +479,93 @@ class JeuInterface:
                     self.finir_tour()
                 else:
                     self.ajouter_evenement("Vous devez choisir un village")
-            elif self.action_selectionnee == "acheter_case":
-                if self.map.territoire_selectionne != []:
-                    self.afficher_tour_journal()
-                    for i in self.map.territoire_selectionne:
-                        i.acheter(self.gamecontroller.joueur)
-                    self.ajouter_evenement("Action exécutée: Achat de case")
-                    self.finir_tour()
-                else:
-                    self.ajouter_evenement("Vous devez choisir un territoire")
+            
             
             elif self.action_selectionnee == "paysan" or self.action_selectionnee == "roturier":
                 if self.map.selected_villages != []:
-                    self.afficher_tour_journal()
+                    self.ajouter_evenement("Action exécutée: Immigration\n")
                     for village in self.map.selected_villages:
                         immigration = Immigration(village.noble)
                         if self.action_selectionnee == "roturier":
+                            if self.gamecontroller.joueur.argent < 2:
+                                self.ajouter_evenement("Vous n'avez pas assez d'argent pour immigrer un roturier")
+                                return
+                            self.afficher_tour_journal()
                             immigration.immigrer("roturier")
+                            self.ajouter_evenement("Roturier immigré\n")
                         elif self.action_selectionnee == "paysan":
+                            if self.gamecontroller.joueur.argent < 1:
+                                self.ajouter_evenement("Vous n'avez pas assez d'argent pour immigrer un paysan")
+                                return
+                            self.afficher_tour_journal()
                             immigration.immigrer("paysan")
-                    self.ajouter_evenement("Action exécutée: Immigration")
+                            self.ajouter_evenement("Paysan immigré\n")
+                    
                     self.finir_tour()
                 else:
                     self.ajouter_evenement("Vous devez choisir un village")
 
             elif self.action_selectionnee == "infanterie" or self.action_selectionnee == "cavalier":
                 from src.models import Soldat
+                if self.gamecontroller.joueur.argent < 5 and self.action_selectionnee == "infanterie":
+                    self.ajouter_evenement("Vous n'avez pas assez d'argent pour recruter un soldat")
+                    return
+                elif self.gamecontroller.joueur.argent < 10 and self.action_selectionnee == "cavalier":
+                    self.ajouter_evenement("Vous n'avez pas assez d'argent pour recruter un soldat")
+                    return
                 self.afficher_tour_journal()
+                self.ajouter_evenement("Action exécutée: Recrutement\n")
                 if self.action_selectionnee == "infanterie":
                     self.gamecontroller.joueur.recruter(Soldat("infanterie", 5, "infanterie"))
+                    self.ajouter_evenement("Soldat recruté: infanterie\n")
                 elif self.action_selectionnee == "cavalier":
                     self.gamecontroller.joueur.recruter(Soldat("cavalier", 10, "cavalier"))
-                self.ajouter_evenement("Action exécutée: Recrutement")
+                    self.ajouter_evenement("Soldat recruté: cavalier\n")
+                
                 self.finir_tour()
             
             elif self.action_selectionnee == "guerre":
                 if self.map.selected_villages != []:
                     if self.map.territoires_adjacents(self.gamecontroller.joueur, self.map.selected_villages[0].proprietaire):
                         self.afficher_tour_journal()
+                        self.ajouter_evenement("Action exécutée: Guerre\n")
                         self.gamecontroller.guerre(self.gamecontroller.joueur, self.map.selected_villages[0].proprietaire)
                         print("seigneur : ",isinstance(self.gamecontroller.joueur,Seigneur))
-
-                        self.ajouter_evenement("Action exécutée: Guerre")
                         self.finir_tour()
                     else:
                         self.ajouter_evenement("Vous ne pouvez pas déclarer la guerre à ce village")
                 else:
                     self.ajouter_evenement("Vous devez choisir un village")
+                    
+                    
+            elif self.action_selectionnee == "terrain" or self.action_selectionnee == "habitation" or self.action_selectionnee == "camp":
+                if self.map.territoire_selectionne != []:
+                    if self.action_selectionnee == "terrain":
+                        if self.gamecontroller.joueur.argent < len(self.map.territoire_selectionne)*5:
+                            self.ajouter_evenement("Vous n'avez pas assez d'argent pour acheter ces terrains")
+                            return
+                        self.afficher_tour_journal()
+                        self.ajouter_evenement("Action exécutée: Construction\n")
+                        for i in self.map.territoire_selectionne:
+                            i.acheter(self.gamecontroller.joueur)
+                    elif self.action_selectionnee == "habitation":
+                        if self.gamecontroller.joueur.argent < 10:
+                            self.ajouter_evenement("Vous n'avez pas assez d'argent pour construire cette habitation")
+                            return
+                        self.afficher_tour_journal()
+                        self.ajouter_evenement("Action exécutée: Construction\n")
+                        self.gamecontroller.construire(self.gamecontroller.joueur,self.map.territoire_selectionne[0],"habitation")
+                    elif self.action_selectionnee == "camp":
+                        if self.gamecontroller.joueur.argent < 10:
+                            self.ajouter_evenement("Vous n'avez pas assez d'argent pour construire ce camp")
+                            return
+                        self.afficher_tour_journal()
+                        self.ajouter_evenement("Action exécutée: Construction\n")
+                        self.gamecontroller.construire(self.gamecontroller.joueur,self.map.territoire_selectionne[0],"camp")                    
+                    self.finir_tour()
+                else:
+                    self.ajouter_evenement("Vous devez choisir un territoire")
+                
     
     def finir_tour(self):
         """reset les actions selectionnées"""
@@ -486,5 +589,5 @@ class JeuInterface:
         #self.gamecontroller.joueur.village_noble.afficher_statut()
         self.mettre_a_jour_infos_village(self.map.village_affiché)
         self.map.mettre_a_jour_bordures()
-        
+        self.map.dessiner_map_visible()
     

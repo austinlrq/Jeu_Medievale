@@ -15,6 +15,8 @@ class Seigneur(Noble):
         self.vassaux: List[Noble] = []
         self.armee: List[Soldat] = []  # Liste des soldats dans l'armée du Seigneur
         self.cases: List[Case] = []  # Liste des cases détenues par le Noble
+        self.capacite_habitants = 10  # Nombre maximum d'habitants dans le village
+        self.capacite_soldats = 5  # Nombre maximum de soldats dans l'armée
 
 
     def ajouter_vassal(self, vassal: Noble):
@@ -52,7 +54,7 @@ class Seigneur(Noble):
         from src.models import Noble
         total_impots = 0
         for village in villages:
-            village.noble.percevoir_impots()
+            village.noble.percevoir_impot(village)
             vassal_impots = int(village.noble.ressources * 0.1)  # Le seigneur prend 50 % des ressources de chaque noble vassal
             village.noble.diminuer_ressources(vassal_impots)
             self.augmenter_ressources(vassal_impots)

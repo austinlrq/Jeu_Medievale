@@ -1,11 +1,10 @@
 # main.py
 import tkinter as tk
+from src.controllers import GameController
+from src.models import Roturier, Paysan
+from src.views import MenuPrincipal
 
 def main():
-    from src.controllers import GameController
-    from src.models import Roturier, Paysan
-    from src.views import MenuPrincipal
-
     # Ajout d'habitants
     """for i in range(5):
         village_joueur.ajouter_habitant(Roturier(f"Roturier {i+1}", age=20 + i))
