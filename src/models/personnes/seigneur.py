@@ -9,20 +9,23 @@ class Seigneur(Noble):
     Classe représentant un seigneur, ayant des nobles comme vassaux.
     """
 
-    def __init__(self, nom: str, age: int, ressources: int, argent: int, bonheur: int, couleur_bordure="#FFFFFF"):
+    def __init__(self, nom: str, age: int, ressources: int, argent: int, bonheur: int, couleur_bordure="#FFFFFF", capacite_habitants=10, capacite_soldats=5):
         super().__init__(nom, age, ressources, argent, bonheur)
         self.couleur_bordure = couleur_bordure  # Couleur unique pour le seigneur
         self.vassaux: List[Noble] = []
         self.armee: List[Soldat] = []  # Liste des soldats dans l'armée du Seigneur
         self.cases: List[Case] = []  # Liste des cases détenues par le Noble
-        self.capacite_habitants = 10  # Nombre maximum d'habitants dans le village
-        self.capacite_soldats = 5  # Nombre maximum de soldats dans l'armée
+        self.capacite_habitants = capacite_habitants  # Nombre maximum d'habitants dans le village
+        self.capacite_soldats = capacite_soldats  # Nombre maximum de soldats dans l'armée
 
 
     def ajouter_vassal(self, vassal: Noble):
         """Ajoute un noble en tant que vassal de ce seigneur."""
         self.vassaux.append(vassal)
-
+        self.capacite_habitants += vassal.capacite_habitants
+        self.capacite_soldats += vassal.capacite_soldats
+        vassal.capacite_habitants = 0
+        vassal.capacite_soldats = 0
         # Transfert des cases du noble vassalisé au seigneur
         for case in vassal.cases:
             self.ajouter_case(case)
@@ -32,6 +35,10 @@ class Seigneur(Noble):
 
     def ajouter_vassal_seigneur(self, seigneur: "Seigneur"):
         """Ajoute un seigneur en tant que vassal de ce seigneur."""
+        self.capacite_habitants += seigneur.capacite_habitants
+        self.capacite_soldats += seigneur.capacite_soldats
+        seigneur.capacite_habitants = 0
+        seigneur.capacite_soldats = 0
         for vassal in seigneur.vassaux:
             self.ajouter_vassal(vassal)
         for case in seigneur.cases:

@@ -12,22 +12,21 @@ from .mapzoom import MapZoom
 class Map:
     def __init__(self, root, game_controller, rows=10, cols=10, case_size=50):
         self.root = root
-        self.rows = rows
-        self.cols = cols
         self.case_size = case_size
         self.gamecontroller = game_controller
 
         self.highlighted_cases = {}
 
         # Structure des données pour stocker les caseules
-        # self.map_data = [[None for _ in range(cols)] for _ in range(rows)]
+
         self.selected_villages = []  # Liste des villages sélectionnés
         self.selected_action = None  # Action en cours
         self.territoire_selectionne = []
         self.village_affiché = None
+        self.width_map = 100
+        self.height_map = 100
 
-
-        self.grid = GenerateMap(50,50,self.gamecontroller.villages).grid
+        self.grid = GenerateMap(self.width_map,self.height_map,self.gamecontroller.villages).grid
         # Cadre pour la carte (grille)
         self.map_frame = tk.Frame(self.root, bg="#2E2E2E")
         self.map_frame.pack(expand=True, fill="both", padx=5, pady=1)
@@ -39,6 +38,10 @@ class Map:
         # Ajouter des événements de clic
         self.canvas.bind("<Button-1>", self.on_click)
         
+        # Bind espace pour retrouver le village facilement
+        print("binding")
+        self.canvas.bind("<a>", self.on_space)
+
         # Ajouter un binding pour détecter le clic droit
         self.canvas.bind("<Control-Button-3>", self.clic_droit_village)
 
@@ -48,23 +51,28 @@ class Map:
         self.debut_x = 0         # Position initiale en x pour le glissement
         self.debut_y = 0         # Position initiale en y pour le glissement
         self.case_size = case_size
-        self.canvas = tk.Canvas(self.map_frame, width=12 * case_size, height=8 * case_size, bg="#2E2E2E", highlightthickness=0)
-        self.canvas.pack(anchor="center")
-        self.root.update_idletasks()  # Force l'actualisation de la fenêtre
+        # Create canvas and dynamically calculate the visible dimensions
+        self.canvas = tk.Canvas(
+            self.map_frame, bg="#2E2E2E", highlightthickness=0
+        )
+        self.canvas.pack(expand=True, fill="both", anchor="center")
+        
         self.nb_colonnes_visibles = self.canvas.winfo_width() // self.case_size
         self.nb_lignes_visibles = self.canvas.winfo_height() // self.case_size
         # Initialiser les gestionnaires pour zoom et drag
         self.zoom_manager = MapZoom(self.canvas, self)
         self.drag_manager = MapDrag(self.canvas, self)
+        self.root.update_idletasks()  # Force l'actualisation de la fenêtre
+        self.centrer_sur_village()
 
-        # Bind espace pour retrouver le village facilement
-        self.root.bind("<space>", lambda event: self.centrer_sur_village())
-
+    def on_space(self, event):
+        print("a")
         self.centrer_sur_village()
 
     def centrer_sur_village(self):
         """Centre la carte sur le village du joueur."""
         # Récupérer les coordonnées du village du joueur
+        print("centrer")
         for village in self.gamecontroller.villages:
             if village.noble == self.gamecontroller.joueur:
                 village_coords = village.get_coords()
@@ -119,8 +127,8 @@ class Map:
 
         colors_batiments = {
             "terrain": "#A67B5B",
-            "habitation": "#A67B5B",
-            "camp": "#A67B5B"
+            "habitation": "#C19A6B",
+            "camp": "#B22222"
         }
         
         for row in range(self.nb_lignes_visibles):  # Dynamique pour les lignes
@@ -151,9 +159,9 @@ class Map:
                             color = colors.get(case.type, "white")"""
                     self.canvas.create_rectangle(x0, y0, x1, y1, fill=color, outline="")
                     if case.batiment!=None:
-                        self.canvas.create_rectangle(x0+5, y0+5, x1-5, y1-5, fill=color_batiment, outline="")
-                    #self.dessiner_bordures(case, x0, y0, x1, y1)
-        self.mettre_a_jour_bordures()
+                        self.canvas.create_rectangle(x0+(self.case_size/6), y0+(self.case_size/6), x1-(self.case_size/6), y1-(self.case_size/6), fill=color_batiment, outline="")
+                    self.dessiner_bordures(case, x0, y0, x1, y1)
+        #self.mettre_a_jour_bordures()
         keys_list = list(self.highlighted_cases.keys())
         self.highlighted_cases.clear()
         for i in keys_list:
@@ -307,6 +315,7 @@ class Map:
             self.interface.action_bouton_selectionnee = None
             self.village_affiché = village
 
+
 ###  A REFAIRE ###
         def get_village(self, row, col):
             """
@@ -338,7 +347,7 @@ class Map:
 
     def dessiner_bordures(self, case, x1, y1, x2, y2):
         """Dessine les bordures uniquement sur les arêtes adjacentes à un territoire différent."""
-        if not case.proprietaire:
+        if not case.proprietaire :
             return
         voisins = self.get_voisins(case)
 
@@ -359,14 +368,14 @@ class Map:
                     self.canvas.create_line(x1 + offset, y1 + offset, x1 + offset, y2 - offset, fill=couleur_bordure, width=2, tags=f"border_{case.row}_{case.col}")
                 elif voisin.row > case.row:  # Droite
                     self.canvas.create_line(x2 - offset, y1 + offset, x2 - offset, y2 - offset, fill=couleur_bordure, width=2, tags=f"border_{case.row}_{case.col}")
-
+   
     def mettre_a_jour_bordures(self):
         """Met à jour les bordures de toutes les cases."""
         for i in self.grid:
             for case in i:
                 x1, y1, x2, y2 = self.get_coords_case(case)
                 self.dessiner_bordures(case, x1, y1, x2, y2)
-                
+
     def get_coords_case(self, case):
         """Retourne les coordonnées de la case donnée."""
         x1 = (case.row- self.map_compenser_x) * self.case_size

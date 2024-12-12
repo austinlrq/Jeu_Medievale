@@ -7,12 +7,15 @@ class MapDrag:
         self.map_manager = map_manager  # Référence pour gérer les compensateurs
         self.debut_x = 0
         self.debut_y = 0
-        with open("src/settings.json", "r") as f:
-           data = json.load(f)
-        self.sensibilite = data["SENSIBILITE"]
+        self.load_sensi()
         # Activer les bindings pour le drag
         self.canvas.bind("<ButtonPress-3>", self.sur_map_click_droit)
         self.canvas.bind("<B3-Motion>", self.sur_map_drag)
+    
+    def load_sensi(self):
+        with open("src/settings.json", "r") as f:
+           data = json.load(f)
+        self.sensibilite = data["SENSIBILITE"]
 
     def sur_map_click_droit(self, event):
         self.debut_x = event.x

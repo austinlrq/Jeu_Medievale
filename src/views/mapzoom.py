@@ -8,6 +8,7 @@ class MapZoom:
         self.canvas.bind("<MouseWheel>", self.sur_scroll)  # Windows
         self.canvas.bind("<Button-4>", self.sur_scroll_linux)  # Linux/Mac (zoom in)
         self.canvas.bind("<Button-5>", self.sur_scroll_linux)  # Linux/Mac (zoom out)
+        self.canvas.bind("<Configure>", self.on_resize)
 
     def sur_scroll(self, event):
         delta = event.delta
@@ -22,12 +23,15 @@ class MapZoom:
 
     def mettre_a_jour_zoom(self, delta):
         facteur_zoom = 5  # Ajustez ce facteur
-        nouvelle_taille = self.case_size + (facteur_zoom if delta > 0 else -facteur_zoom)
-        nouvelle_taille = max(20, min(nouvelle_taille, 100))  # Limiter entre 20 et 100
+
+        dezoom_max = (self.map_manager.canvas.winfo_width() // self.map_manager.width_map) + 1
+        
+        taille_estime = self.case_size + (facteur_zoom if delta > 0 else -facteur_zoom)
+        nouvelle_taille = max(dezoom_max, min(taille_estime, 50))  # Limiter entre 20 et 100
 
         if nouvelle_taille != self.case_size:
             self.case_size = nouvelle_taille
-            self.map_manager.case_size = nouvelle_taille  # Mettre à jour la taille dans le map_manager
+            self.map_manager.case_size = self.case_size  # Mettre à jour la taille dans le map_manager
 
             # Recalculer le nombre de colonnes et lignes visibles
             self.map_manager.nb_colonnes_visibles = self.canvas.winfo_width() // self.case_size
@@ -41,3 +45,6 @@ class MapZoom:
             self.map_manager.map_compenser_y = min(self.map_manager.map_compenser_y, max_compenser_y)
 
             self.map_manager.dessiner_map_visible()
+
+    def on_resize(self, event):
+        self.mettre_a_jour_zoom(0)

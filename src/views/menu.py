@@ -1,14 +1,14 @@
 import tkinter as tk
 from tkinter import font
 from ..views.interface import JeuInterface
-from  ..views.settingsinterface import SettingsInterface
+from ..views.settingsinterface import SettingsInterface
 import json
 
 class MenuPrincipal:
     def __init__(self, root):
         self.root = root
         self.cree_menu()
-    
+
     def cree_menu(self):
         self.root.title("Jeu Médiéval - Menu Principal")
         self.root.geometry("500x400")
@@ -38,11 +38,11 @@ class MenuPrincipal:
             pady=10
         )
         self.start_button.pack(pady=20)
-        
+
         # Bouton pour lancer les settings
         self.set_button = tk.Button(
             self.menu_frame,
-            text="settings",
+            text="Settings",
             font=("Helvetica", 16, "bold"),
             bg="#1C6E8C",
             fg="white",
@@ -64,17 +64,17 @@ class MenuPrincipal:
             fg="white",
             activebackground="#A63D4F",
             activeforeground="white",
-            command=None,
+            command=self.quit_game,
             bd=0,
             padx=20,
             pady=10
         )
         self.quit_button.pack(pady=10)
-        
+
     def ouvrir_settings(self):
         """Lance l'interface des settings dans la même fenêtre."""
-        self.menu_frame.pack_forget()  # Cache le menu principal
-        SettingsInterface(self.root, self)
+        self.settings = SettingsInterface(self.root, self.menu_frame)
+        self.settings.creer_visu(False)  # Crée l'interface des paramètres
 
     def lancer_jeu(self):
         """Lance l'interface de jeu dans la même fenêtre."""
@@ -83,6 +83,9 @@ class MenuPrincipal:
         self.game_frame.pack(fill="both", expand=True)
         from ..controllers import GameController
 
-        game_controller=GameController()
-        print(game_controller.joueur.argent)
+        game_controller = GameController()
         JeuInterface(self.root, self.game_frame, game_controller)  # Affiche l'interface du jeu
+
+    def quit_game(self):
+        """Ferme le jeu."""
+        self.root.quit()
