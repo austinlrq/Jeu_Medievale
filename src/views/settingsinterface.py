@@ -30,8 +30,8 @@ class SettingsInterface:
             "<Configure>",
             lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         )
-
-        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        
+        self.window_id =  self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
         # Affichage des widgets
@@ -102,6 +102,20 @@ class SettingsInterface:
         # Bouton pour sauvegarder
         self.save_button = tk.Button(self.scrollable_frame, text="Sauver", font=("Helvetica", 16, "bold"), command=self.sauver, bg="#1C6E8C", fg="white")
         self.save_button.grid(row=6, column=0, columnspan=2, pady=20)
+
+        # Force une update pour calculer la geometrie
+        # self.root.update_idletasks()
+
+        # bbox = self.canvas.bbox(self.window_id)  # Retourne (x1, y1, x2, y2)
+
+        # if bbox:  
+        #     window_width = bbox[2] - bbox[0]  # x2 - x1
+        #     print("Window Width:", window_width)
+        # else:
+        #     print("Window n'a pas de bounding box encore.")
+
+        # self.canvas.coords(self.window_id, (screen_width - window_width) // 2, 0)
+
 
     def sauver(self):
         """Sauvegarde les paramètres modifiés dans le fichier JSON."""

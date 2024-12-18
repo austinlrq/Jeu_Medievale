@@ -48,9 +48,9 @@ class Noble(Personne):
         """Recrute un soldat pour l'armée du noble."""
         self.armee.append(soldat)
         if soldat.type_soldat == "infanterie":
-            self.diminuer_argent(5)
-        elif soldat.type_soldat == "cavalier":
             self.diminuer_argent(10)
+        elif soldat.type_soldat == "cavalier":
+            self.diminuer_argent(15)
         print(f"{self.nom} a recruté {soldat.nom} dans son armée.")
     
     def ajouter_case(self, case):
@@ -144,9 +144,24 @@ class Noble(Personne):
         return (
             super().__str__() +
             f", Type : Noble, "
-            f"Village : {self.village_noble}"
+            f" Village : {self.village_noble}"
             f", Armée : {self.armee}"
             f", Cases : {self.cases}"
             f", Seigneur : {self.seigneur}"
             f", Couleur bordure : {self.couleur_bordure}"
         )
+    
+    def to_dict(self):
+        return {
+            "nom": self.nom,
+            "age": self.age,
+            "ressources": self.ressources,
+            "argent": self.argent,
+            "bonheur": self.bonheur,
+            "couleur_bordure": self.couleur_bordure,
+            "capacite_habitants": self.capacite_habitants,
+            "capacite_soldats": self.capacite_soldats,
+            "village_id": self.village_noble.id if self.village_noble else None,
+            "armee": [soldat.to_dict() for soldat in self.armee],
+            "seigneur": self.seigneur.nom if self.seigneur else None
+        }

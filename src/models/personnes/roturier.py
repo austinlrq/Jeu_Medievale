@@ -20,3 +20,10 @@ class Roturier(Personne):
             f", Type : Roturier, "
             f"Capacité de production : {self.capacite_production}"
         )
+    
+    def to_dict(self):
+        # Appel à la méthode to_dict de la classe parente
+        base_dict = super().to_dict()
+        # Ajout de l'attribut 'capacite_production' à l'objet dict
+        base_dict["capacite_production"] = self.capacite_production
+        return base_dict

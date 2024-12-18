@@ -3,7 +3,7 @@ from enum import Enum
 class TYPE(Enum):
     plaine = "plaine"
     eau = "eau"
-    foret = "forêt"
+    foret = "foret"
     montagne = "montagne"
     village = "village"
     foretclair = "foretclair"

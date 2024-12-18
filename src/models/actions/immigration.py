@@ -8,8 +8,8 @@ class Immigration:
         :param noble: L'objet Noble pour lequel l'immigration s'applique.
         """
         self.noble = noble
-        self.cout_paysan = 1
-        self.cout_roturier = 2
+        self.cout_paysan = 5
+        self.cout_roturier = 10
 
     def immigrer(self, type_personne):
         """

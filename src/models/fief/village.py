@@ -1,14 +1,16 @@
 from src.models import *
 class Village:
-    def __init__(self, nom, x = None, y = None):
+    def __init__(self, id, nom, x = None, y = None):
         self.nom = nom
         self.habitants = []  # Liste d'instances de Roturier et de Paysan
         self.noble = None  # Instance de Noble
         self.x= x
         self.y = y
+        self.id = id
 
     def get_coords(self):
         return (self.x, self.y)
+    
     def ajouter_habitant(self, habitant):
         """Ajoute un habitant au village."""
         self.habitants.append(habitant)
@@ -67,3 +69,11 @@ class Village:
         if not self.habitants:
             return None
         return max(self.habitants, key=lambda habitant: habitant.argent)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "nom": self.nom,
+            "habitant": [habitant.to_dict() for habitant in self.habitants],
+            "noble": self.noble.to_dict()
+        }

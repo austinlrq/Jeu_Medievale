@@ -1,4 +1,5 @@
 import tkinter as tk
+import json
 from perlin_noise import PerlinNoise
 import random
 from .TYPE import TYPE
@@ -8,12 +9,18 @@ from math import sqrt
 
 
 class GenerateMap:
-    def __init__(self, width, height, liste_villages, seed=None):
+    def __init__(self, width, height, liste_villages):
         self.width = width
         self.height = height
         self.liste_villages = liste_villages
-        self.seed = seed
+        self.seed = None
+        self.load_seed()
         self.grid = self.generate_map()
+
+    def load_seed(self):
+        with open("src/settings.json", "r") as f:
+           data = json.load(f)
+        self.seed = data["SEED"]
 
     def generate_perlin_noise(self):
         noise1 = PerlinNoise(octaves=3, seed=self.seed)

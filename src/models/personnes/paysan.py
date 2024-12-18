@@ -13,3 +13,7 @@ class Paysan(Roturier):
             super().__str__() +
             f", Type : Paysan"
         )
+    
+    def to_dict(self):
+        # Appel à la méthode to_dict de la classe parente
+        return super().to_dict()

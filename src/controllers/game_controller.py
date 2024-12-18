@@ -2,6 +2,7 @@ from src.models import Evenement
 from src.models import RecolteAbondante
 from src.models import Epidemie
 from src.models import Immigration
+from src.controllers.bot_controller import action_bots
  
 # from src.models import GuerreCaracteristique
 import random
@@ -9,48 +10,35 @@ from typing import List
 from src.models import *
 
 class GameController:
-    def __init__(self):
+    def __init__(self, villages=None, nobles = None, joueur = None, tour = 0):
         self.interface = None
-        self.tour = 1
         self.couleurs_possibles = ["#0000FF",  # Bleu
-                            "#800080",  # Violet
-                            "#FFA500",  # Orange
-                            "#FFFFFF"]  # Blanc
-        self.villages, self.nobles = self.creer_villages(4, 3)
+                                   "#800080",  # Violet
+                                   "#FFA500",  # Orange
+                                   "#FFFFFF"]  # Blanc
+        
+        # Si un village est passé en paramètre, l'initialisation prend en compte ce village
+        if villages:
+            self.villages = villages # Remplacer par un village existant
+            self.nobles = nobles
+            self.tour = tour
+            self.joueur = joueur
+            
+        else:
+            self.villages, self.nobles = self.creer_villages(4, 3)  # Créer des villages par défaut
+            self.joueur = self.nobles[0]  # Le premier noble est le joueur
+            self.tour = 1
+            #self.joueur.augmenter_argent(1000)
+
         self.seigneurs = []
         self.seigneurs_vassalisés = []
-        self.joueur = self.nobles[0]
+
         # Afficher le statut de chaque village
         for village in self.villages:
             village.afficher_statut()
-        self.joueur.augmenter_argent(1000)
-
-        """self.roturier1 = Roturier("Roturier 1", 20, 10, 10, 10, 5)
-        self.roturier2 = Roturier("Roturier 2", 20, 10, 10, 10, 5)
-        self.paysan1 = Paysan("Paysan 1", 20, 20, 15, 5)
-
-        self.joueur = Noble("joueur", 20, 10, 10, 5)
-
-        # Création du village
-        self.village_joueur = Village("Village du Joueur")
-        self.village_joueur.ajouter_habitant(self.roturier1)
-        self.village_joueur.ajouter_habitant(self.roturier2)
-        self.village_joueur.ajouter_habitant(self.paysan1)
-
-        self.joueur.ajouter_village(self.village_joueur)
-
-        #self.village_joueur.afficher_statut()
-        # Calcul de la production et perception des impôts
-        #self.village_joueur.produire_ressources()
-        self.immigration_action = Immigration(self.joueur)
-        self.immigration_action.immigrer("roturier")
-        self.seigneur = self.joueur.devenir_seigneur()
         
-        self.seigneur.__str__()
-        # Afficher le statut du village
-        self.village_joueur.afficher_statut()"""
 
-        #self.village_joueur.afficher_statut()
+        # Liste des événements
         self.evenements = [
             RecolteAbondante(),
             Epidemie(),
@@ -76,7 +64,7 @@ class GameController:
         nobles = []
         for i in range(n):
             nom_village = f"Village_{i}"
-            village = Village(nom_village)
+            village = Village(i,nom_village)
             
             # Création d'un noble pour chaque village
             noble = Noble(f"Noble_{i}", 30, 100, 50, 5, self.couleurs_possibles[i])
@@ -267,34 +255,36 @@ class GameController:
         #produire les ressources de tous les personnages
         for seigneur in self.seigneurs:
             total = seigneur.produire_ressources()
-            if seigneur.ressources < len(seigneur.armee)*2:
-                seigneur.armee.pop(0)
-                if seigneur==self.joueur:
-                    self.interface.ajouter_evenement(f"Le village n'a pas assez de ressources pour l'armée.\n")
-                    self.interface.ajouter_evenement(f"Un soldat est mort de faim.\n")
-            else:
-                seigneur.diminuer_ressources(len(seigneur.armee)*2)
-                if seigneur==self.joueur:
-                    self.interface.ajouter_evenement(f"Le village a dépensé {len(seigneur.armee)*2} ressources pour l'armée.\n")
+            if len(seigneur.armee) != 0:
+                if seigneur.ressources < len(seigneur.armee)*2:
+                    seigneur.armee.pop(0)
+                    if seigneur==self.joueur:
+                        self.interface.ajouter_evenement(f"Le village n'a pas assez de ressources pour l'armée.\n")
+                        self.interface.ajouter_evenement(f"Un soldat est mort de faim.\n")
+                else:
+                    seigneur.diminuer_ressources(len(seigneur.armee)*2)
+                    if seigneur==self.joueur:
+                        self.interface.ajouter_evenement(f"Le village a dépensé {len(seigneur.armee)*2} ressources pour l'armée.\n")
             if seigneur==self.joueur:
                 self.interface.ajouter_evenement(f"Le village a produit {total} ressources.\n")
             
         for noble in self.nobles:
             if noble.seigneur==None:
                 total = noble.produire_ressources()
-                if noble.ressources < len(noble.armee)*2:
-                    noble.armee.pop(0)
-                    if noble==self.joueur:
-                        self.interface.ajouter_evenement(f"Le village n'a pas assez de ressources pour l'armée.\n")
-                        self.interface.ajouter_evenement(f"Un soldat est mort de faim.\n")
-                else:
-                    noble.diminuer_ressources(len(noble.armee)*2)
-                    if noble==self.joueur:
-                        self.interface.ajouter_evenement(f"Le village a dépensé {len(noble.armee)*2} ressources pour l'armée.\n")
+                if len(noble.armee) != 0:
+                    if noble.ressources < len(noble.armee)*2:
+                        noble.armee.pop(0)
+                        if noble==self.joueur:
+                            self.interface.ajouter_evenement(f"Le village n'a pas assez de ressources pour l'armée.\n")
+                            self.interface.ajouter_evenement(f"Un soldat est mort de faim.\n")
+                    else:
+                        noble.diminuer_ressources(len(noble.armee)*2)
+                        if noble==self.joueur:
+                            self.interface.ajouter_evenement(f"Le village a dépensé {len(noble.armee)*2} ressources pour l'armée.\n")
                 if noble==self.joueur:
                     self.interface.ajouter_evenement(f"Le village a produit {total} ressources.\n")
-                
-
+        action_bots(self)
+    
 
     # def verifier_declenchement_guerre(self, seigneurs: List[Seigneur]):
     #     """Détermine si une guerre doit se déclencher entre deux seigneurs aléatoires."""
@@ -304,3 +294,29 @@ class GameController:
     #         guerre = GuerreCaracteristique(attaquant, defenseur)
     #         self.guerres.append(guerre)
     #         guerre.declencher()  # Déclenche la guerre et applique les conséquences
+
+
+"""self.roturier1 = Roturier("Roturier 1", 20, 10, 10, 10, 5)
+        self.roturier2 = Roturier("Roturier 2", 20, 10, 10, 10, 5)
+        self.paysan1 = Paysan("Paysan 1", 20, 20, 15, 5)
+
+        self.joueur = Noble("joueur", 20, 10, 10, 5)
+
+        # Création du village
+        self.village_joueur = Village("Village du Joueur")
+        self.village_joueur.ajouter_habitant(self.roturier1)
+        self.village_joueur.ajouter_habitant(self.roturier2)
+        self.village_joueur.ajouter_habitant(self.paysan1)
+
+        self.joueur.ajouter_village(self.village_joueur)
+
+        #self.village_joueur.afficher_statut()
+        # Calcul de la production et perception des impôts
+        #self.village_joueur.produire_ressources()
+        self.immigration_action = Immigration(self.joueur)
+        self.immigration_action.immigrer("roturier")
+        self.seigneur = self.joueur.devenir_seigneur()
+        
+        self.seigneur.__str__()
+        # Afficher le statut du village
+        self.village_joueur.afficher_statut()"""

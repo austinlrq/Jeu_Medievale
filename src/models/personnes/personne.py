@@ -56,3 +56,14 @@ class Personne:
         """Détermine si le personnage meurt en fonction de son âge."""
         chance_de_mort = min((self.age - 50) * 0.05, 0.5)  # Exemple : 5% de plus par an après 50 ans, jusqu'à un max de 50%
         return random.random() < chance_de_mort  # Retourne True si le personnage meurt
+    
+    def to_dict(self):
+        """Convertit l'objet Personne en dictionnaire."""
+        return {
+            "nom": self.nom,
+            "age": self.age,
+            "esperance_de_vie": self.esperance_de_vie,
+            "ressources": self.ressources,
+            "argent": self.argent,
+            "bonheur": self.bonheur
+        }

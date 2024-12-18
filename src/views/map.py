@@ -1,4 +1,5 @@
 import tkinter as tk
+import json
 # from .interface import JeuInterface
 # from src.controllers import GameController
 from tkinter import font
@@ -10,7 +11,7 @@ from .mapdrag import MapDrag
 from .mapzoom import MapZoom
 
 class Map:
-    def __init__(self, root, game_controller, rows=10, cols=10, case_size=50):
+    def __init__(self, root, game_controller, case_size=50, map_data = None):
         self.root = root
         self.case_size = case_size
         self.gamecontroller = game_controller
@@ -23,10 +24,15 @@ class Map:
         self.selected_action = None  # Action en cours
         self.territoire_selectionne = []
         self.village_affiché = None
-        self.width_map = 100
-        self.height_map = 100
-
-        self.grid = GenerateMap(self.width_map,self.height_map,self.gamecontroller.villages).grid
+        if map_data:
+            self.width_map = map_data["width"]
+            self.height_map = map_data["height"]
+            self.grid = map_data["grid"]
+        else:
+            self.width_map = 100
+            self.height_map = 100
+            self.load_info_map()
+            self.grid = GenerateMap(self.width_map,self.height_map,self.gamecontroller.villages).grid
         # Cadre pour la carte (grille)
         self.map_frame = tk.Frame(self.root, bg="#2E2E2E")
         self.map_frame.pack(expand=True, fill="both", padx=5, pady=1)
@@ -44,6 +50,12 @@ class Map:
 
         # Ajouter un binding pour détecter le clic droit
         self.canvas.bind("<Control-Button-3>", self.clic_droit_village)
+
+    def load_info_map(self):
+        with open("src/settings.json", "r") as f:
+           data = json.load(f)
+        self.height_map = data["HAUTEUR_MAP"]
+        self.width_map = data["LARGEUR_MAP"]
 
     def creer_grille_carte(self, case_size=50):
         self.map_compenser_x = 0  # Compensateur horizontal de la carte
@@ -73,10 +85,13 @@ class Map:
         """Centre la carte sur le village du joueur."""
         # Récupérer les coordonnées du village du joueur
         print("centrer")
+        village_coords = None
         for village in self.gamecontroller.villages:
+            print("cherche village...")
             if village.noble == self.gamecontroller.joueur:
+                print("village trouve")
                 village_coords = village.get_coords()
-        
+        print(village_coords)
         if not village_coords:
             print("Aucun village trouvé pour centrer la carte.")
             return
@@ -395,4 +410,14 @@ class Map:
                 if voisin.proprietaire == defenseur:
                     return True
         return False
+    
+    def chemin_le_plus_court(self,attaquant,defenseur):
+        #renvoie le chemin le plus court entre 2 cases de villages differents
+        return
 
+    def to_dict(self):
+        return {
+            "width":self.width_map,
+            "height":self.height_map,
+            "cases": [[case.to_dict() for case in ligne] for ligne in self.grid]  # Assurez-vous que chaque case a une méthode to_dict()
+        }

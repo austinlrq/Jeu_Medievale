@@ -75,3 +75,18 @@ class Seigneur(Noble):
             f", Type : Seigneur, "
             f"Nombre de vassaux : {len(self.vassaux)}"
         )
+    
+    def to_dict(self):
+        return {
+            "nom": self.nom,
+            "age": self.age,
+            "ressources": self.ressources,
+            "argent": self.argent,
+            "bonheur": self.bonheur,
+            "couleur_bordure": self.couleur_bordure,
+            "capacite_habitants": self.capacite_habitants,
+            "capacite_soldats": self.capacite_soldats,
+            "vassaux": [vassal.nom for vassal in self.vassaux], 
+            "armee": [soldat.to_dict() for soldat in self.armee],  # Assure-toi que Soldat possède une méthode to_dict()
+            "cases": [{"row": case.row, "col": case.col, "type": case.type} for case in self.cases],
+        }
