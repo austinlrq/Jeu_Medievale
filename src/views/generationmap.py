@@ -51,6 +51,7 @@ class GenerateMap:
 
             village.x = x_central
             village.y = y_central
+            village.case = self.grid[y_central][x_central]
             village.noble.ajouter_case(self.grid[y_central][x_central])
             
             # Définir la case centrale comme un village

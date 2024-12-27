@@ -68,7 +68,8 @@ class Noble(Personne):
             self.village_noble.habitants.remove(plus_riche)  # Retire le plus riche des habitants
 
             # Retourne une instance de Seigneur avec le village géré par le nouveau noble
-            seigneur = Seigneur("seigneur", self.age, self.ressources, self.argent, self.bonheur, self.couleur_bordure, self.capacite_habitants, self.capacite_soldats)
+            seigneur = Seigneur(self.nom, self.age, self.ressources, self.argent, self.bonheur, self.couleur_bordure, self.capacite_habitants, self.capacite_soldats)
+            seigneur.village_noble = self.village_noble
             seigneur.vassaux.append(nouveau_noble)
             seigneur.vassaux.append(noble_vassalisé)
             seigneur.cases = self.cases
@@ -99,7 +100,8 @@ class Noble(Personne):
     def devenir_seigneur_contre_seigneur(self, seigneur):
         from .seigneur import Seigneur
         print(len(seigneur.vassaux))
-        nouv_seigneur = Seigneur("seigneur", self.age, self.ressources, self.argent, self.bonheur, self.couleur_bordure, self.capacite_habitants, self.capacite_soldats)
+        nouv_seigneur = Seigneur(self.nom, self.age, self.ressources, self.argent, self.bonheur, self.couleur_bordure, self.capacite_habitants, self.capacite_soldats)
+        nouv_seigneur.village_noble = self.village_noble
         nouv_seigneur.capacite_habitants += seigneur.capacite_habitants
         nouv_seigneur.capacite_soldats += seigneur.capacite_soldats
         for noble in seigneur.vassaux:

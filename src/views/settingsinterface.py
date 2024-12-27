@@ -30,92 +30,71 @@ class SettingsInterface:
             "<Configure>",
             lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         )
-        
-        self.window_id =  self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+
+        self.window_id = self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
         # Affichage des widgets
         self.canvas.pack(side="left", fill="both", expand=True)
         self.scrollbar.pack(side="right", fill="y")
 
+        # Configuration des colonnes pour centrer
+        self.scrollable_frame.columnconfigure(0, weight=1)  # Colonne gauche (vide)
+        self.scrollable_frame.columnconfigure(1, weight=0)  # Colonne avec les labels
+        self.scrollable_frame.columnconfigure(2, weight=0)  # Colonne avec les widgets
+        self.scrollable_frame.columnconfigure(3, weight=1)  # Colonne droite (vide)
+
         # Widgets de l'interface des paramètres
         self.lire_fichier()
 
         # Label "Settings" en haut
         title_label = tk.Label(self.scrollable_frame, text="Settings", font=("Helvetica", 20, "bold"), bg="#2E2E2E", fg="#F7F7F7")
-        title_label.grid(row=0, column=0, columnspan=2, pady=20)
+        title_label.grid(row=0, column=1, columnspan=2, pady=20)  # Centré sur deux colonnes
 
         # Sensibilité
         self.label_sensi = tk.Label(self.scrollable_frame, text="Sensibilité :", font=self.title_font, bg="#2E2E2E", fg="#F7F7F7")
-        self.label_sensi.grid(row=1, column=0, sticky="e", padx=10, pady=10)
+        self.label_sensi.grid(row=1, column=1, sticky="e", padx=10, pady=10)
         self.sensibilite_range = tk.Scale(self.scrollable_frame, from_=1, to=10, orient=tk.HORIZONTAL, bg="#2E2E2E", fg="#F7F7F7", 
                                         highlightthickness=0, borderwidth=0, troughcolor="#1C1C1C")
         self.sensibilite_range.set(self.sensibilite)
-        self.sensibilite_range.grid(row=1, column=1, sticky="w", padx=10, pady=(0, 14))  # Déplace uniquement le Scale
+        self.sensibilite_range.grid(row=1, column=2, sticky="w", padx=10, pady=(0, 14))  # Centré avec scale à droite
 
         # Hauteur de la carte
         self.label_hauteur_map = tk.Label(self.scrollable_frame, text="Hauteur de la carte :", font=self.title_font, bg="#2E2E2E", fg="#F7F7F7")
-        self.label_hauteur_map.grid(row=2, column=0, sticky="e", padx=10, pady=10)
+        self.label_hauteur_map.grid(row=2, column=1, sticky="e", padx=10, pady=10)
         self.hauteur_map_var = tk.IntVar(value=self.hauteur_map)
         self.hauteur_map_menu = tk.OptionMenu(self.scrollable_frame, self.hauteur_map_var, 25, 50, 75, 100)
         self.hauteur_map_menu.config(font=("Helvetica", 14), bg="#2E2E2E", fg="#F7F7F7",
-                                     highlightthickness=0, borderwidth=0,)
-        self.hauteur_map_menu.grid(row=2, column=1, sticky="w", padx=10, pady=10) 
+                                    highlightthickness=0, borderwidth=0)
+        self.hauteur_map_menu.grid(row=2, column=2, sticky="w", padx=10, pady=10)
 
         # Largeur de la carte
         self.label_largeur_map = tk.Label(self.scrollable_frame, text="Largeur de la carte :", font=self.title_font, bg="#2E2E2E", fg="#F7F7F7")
-        self.label_largeur_map.grid(row=3, column=0, sticky="e", padx=10, pady=10)
+        self.label_largeur_map.grid(row=3, column=1, sticky="e", padx=10, pady=10)
         self.largeur_map_var = tk.IntVar(value=self.largeur_map)
         self.largeur_map_menu = tk.OptionMenu(self.scrollable_frame, self.largeur_map_var, 25, 50, 75, 100)
         self.largeur_map_menu.config(font=("Helvetica", 14), bg="#2E2E2E", fg="#F7F7F7",
-                                     highlightthickness=0, borderwidth=0,)
-        self.largeur_map_menu.grid(row=3, column=1, sticky="w", padx=10, pady=10)  
+                                    highlightthickness=0, borderwidth=0)
+        self.largeur_map_menu.grid(row=3, column=2, sticky="w", padx=10, pady=10)
 
         # Nombre de villages
         self.label_villages = tk.Label(self.scrollable_frame, text="Nombre de villages :", font=self.title_font, bg="#2E2E2E", fg="#F7F7F7")
-        self.label_villages.grid(row=4, column=0, sticky="e", padx=10, pady=10)
+        self.label_villages.grid(row=4, column=1, sticky="e", padx=10, pady=10)
         self.villages_range = tk.Scale(self.scrollable_frame, from_=1, to=6, orient=tk.HORIZONTAL, bg="#2E2E2E", fg="#F7F7F7",
-                                       highlightthickness=0, borderwidth=0, troughcolor="#1C1C1C")
+                                    highlightthickness=0, borderwidth=0, troughcolor="#1C1C1C")
         self.villages_range.set(self.nb_village)
-        self.villages_range.grid(row=4, column=1, sticky="w", padx=10, pady=(0, 14)) 
+        self.villages_range.grid(row=4, column=2, sticky="w", padx=10, pady=(0, 14))
 
         # Seed (input entry)
         self.label_seed = tk.Label(self.scrollable_frame, text="Seed :", font=self.title_font, bg="#2E2E2E", fg="#F7F7F7")
-        self.label_seed.grid(row=5, column=0, sticky="e", padx=10, pady=10)
+        self.label_seed.grid(row=5, column=1, sticky="e", padx=10, pady=10)
         self.seed_entry = tk.Entry(self.scrollable_frame, font=("Helvetica", 14), bg="#F7F7F7", fg="#2E2E2E")
-        self.seed_entry.insert(0, str(self.seed))  # Default seed value
-        self.seed_entry.grid(row=5, column=1, sticky="w", padx=10, pady=10)  # Déplace uniquement le Entry
-
-        if en_jeu:
-            self.hauteur_map_menu.config(state="disabled")
-            self.label_hauteur_map.config(fg="gray")
-
-            self.largeur_map_menu.config(state="disabled")
-            self.label_largeur_map.config(fg="gray")
-
-            self.villages_range.config(state="disabled")
-            self.label_villages.config(fg="gray")
-
-            self.seed_entry.config(state="disabled")
-            self.label_seed.config(fg="gray")
+        self.seed_entry.insert(0, str(self.seed))
+        self.seed_entry.grid(row=5, column=2, sticky="w", padx=10, pady=10)
 
         # Bouton pour sauvegarder
-        self.save_button = tk.Button(self.scrollable_frame, text="Sauver", font=("Helvetica", 16, "bold"), command=self.sauver, bg="#1C6E8C", fg="white")
-        self.save_button.grid(row=6, column=0, columnspan=2, pady=20)
-
-        # Force une update pour calculer la geometrie
-        # self.root.update_idletasks()
-
-        # bbox = self.canvas.bbox(self.window_id)  # Retourne (x1, y1, x2, y2)
-
-        # if bbox:  
-        #     window_width = bbox[2] - bbox[0]  # x2 - x1
-        #     print("Window Width:", window_width)
-        # else:
-        #     print("Window n'a pas de bounding box encore.")
-
-        # self.canvas.coords(self.window_id, (screen_width - window_width) // 2, 0)
-
+        self.save_button = tk.Button(self.scrollable_frame, text="Sauver", font=("Helvetica", 16, "bold"), command=self.sauver, bg="#1C6E8C", fg="white", bd= 0)
+        self.save_button.grid(row=6, column=1, columnspan=2, pady=20)
 
     def sauver(self):
         """Sauvegarde les paramètres modifiés dans le fichier JSON."""

@@ -7,6 +7,7 @@ class Village:
         self.x= x
         self.y = y
         self.id = id
+        self.case = None
 
     def get_coords(self):
         return (self.x, self.y)

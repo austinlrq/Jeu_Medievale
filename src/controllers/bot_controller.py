@@ -1,4 +1,4 @@
-from src.models import Immigration, Soldat
+from src.models import Immigration, Soldat, Seigneur
 from src import controllers
 # importer TYPE
 from src.views.TYPE import TYPE
@@ -37,12 +37,13 @@ def action_bots(game_controller):
         gc=game_controller
         #choisir une categorie
         liste_bots=creer_liste_bots()
-        liste_bots[2].diminuer_argent(0)
         moyenne_argent, moyenne_ressources = moyennes(liste_bots)
         print(moyenne_argent, moyenne_ressources)
         for bot in liste_bots:
             if bot == gc.joueur:
-                pass
+                continue
+            if bot not in gc.seigneurs and bot not in gc.nobles:
+                continue
             choix_categorie = choisir_categorie(bot, moyenne_argent, moyenne_ressources)
             print(bot.nom, bot.argent, bot.ressources)
             print(choix_categorie)
@@ -50,8 +51,9 @@ def action_bots(game_controller):
                 action_argent(bot, moyenne_argent)
             elif choix_categorie=="ressources":
                 action_ressources(bot)
-            else:
+            elif choix_categorie == "guerre":
                 action_guerre(bot, liste_bots)
+            print("############################")
     
 def creer_liste_bots():
     liste=[]
@@ -73,10 +75,16 @@ def moyennes(liste_bots):
     return moyenne_argent, moyenne_ressources
 
 def choisir_categorie(bot, moyenne_argent, moyenne_ressources):
+    if bot.argent == 0 or moyenne_argent == 0:
+        return "argent"
+    if bot.ressources == 0 or moyenne_ressources == 0:
+        return "ressources"
     argent_chance = max(0, 100 - (bot.argent / moyenne_argent * 100))
     ressources_chance = max(0, 100 - (bot.ressources / moyenne_ressources * 100))
     guerre_chance = max(0, ((bot.argent / moyenne_argent + bot.ressources / moyenne_ressources) * 50)-10)
-
+    print(argent_chance)
+    print(ressources_chance)
+    print(guerre_chance)
     total = argent_chance + ressources_chance + guerre_chance
     choix = random.uniform(0, total)
 
@@ -167,7 +175,11 @@ def action_ressources(bot):
             action_prise = True
 
     if not action_prise:
-        bot.percevoir_impot(bot)
+        temp=[]
+        if isinstance(bot, Seigneur):
+            for i in bot.vassaux:
+                temp.append(i.village_noble)
+        bot.percevoir_impot(temp)
         action_prise = True
     return
 
@@ -181,11 +193,11 @@ def peut_construire_case(bot):
 def action_guerre(bot, liste_bots):
     recruter = 25
     acheter_case = 25
-    guerre = 25
-    x = random.randint(0,100)
+    #guerre = 25
+    x = random.randint(0,50)
     action_prise = False
 
-    if x<guerre and not action_prise:
+    """if x<guerre and not action_prise:
         liste = []
         for bot_defenseur in liste_bots:
             if bot_defenseur!=bot:
@@ -193,11 +205,11 @@ def action_guerre(bot, liste_bots):
         random.shuffle(liste)
         for bot_defenseur in liste:
             if gc.interface.map.territoires_adjacents(bot, bot_defenseur):
-                gc.attaquer(bot, bot_defenseur)
+                gc.guerre(bot, bot_defenseur)
                 action_prise = True
-                return
+                return"""
 
-    if x<guerre+recruter and not action_prise:
+    if x<recruter and not action_prise:
         if bot.capacite_soldats<=len(bot.armee):
             liste_cases = peut_construire_case(bot)
             if liste_cases:
@@ -213,24 +225,36 @@ def action_guerre(bot, liste_bots):
             bot.recruter(Soldat(liste[0], 10, liste[0]))
             action_prise = True
 
-    if x<guerre+recruter+acheter_case and not action_prise:
+    if not action_prise:
         #prendre une case pour se rapprocher du noble/seigneur le plus faible
         liste = []
         for bot_defenseur in liste_bots:
-            if bot_defenseur!=bot:
-                pass
-            if liste==[]:
+            if bot_defenseur==bot:
+                continue
+            elif liste==[]:
                 liste.append(bot_defenseur)
+            elif bot_defenseur.seigneur == bot:
+                continue
+            elif bot.seigneur:
+                if len(bot_defenseur.seigneur.armee)<len(liste[0].armee):
+                    liste[0]=bot_defenseur.seigneur
             elif len(bot_defenseur.armee)<len(liste[0].armee):
                 liste[0]=bot_defenseur
         if liste:
-            chemin = gc.interface.map.chemin_le_plus_court(bot, liste[0])
+            coord1 = gc.interface.map.grid[bot.village_noble.y][bot.village_noble.x]
+            coord2 = gc.interface.map.grid[liste[0].village_noble.y][liste[0].village_noble.x]
+            chemin = gc.interface.map.chemin_le_plus_court(coord1, coord2)
             if chemin:
-                case = chemin[0]
-                case.acheter(bot)
-                bot.ajouter_case(case)
-                action_prise = True
-
-
-    
+                i=0
+                while i<len(chemin):
+                    if not chemin[i].proprietaire:
+                        chemin[i].acheter(bot)
+                        bot.ajouter_case(chemin[i])
+                        action_prise = True
+                        return
+                    elif chemin[i].proprietaire and chemin[i].proprietaire!=bot:
+                        #guerre
+                        gc.guerre(bot, chemin[i].proprietaire)
+                        return
+                    i+=1
     return

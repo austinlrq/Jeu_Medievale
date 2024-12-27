@@ -9,6 +9,8 @@ from PIL import ImageColor
 from .TYPE import TYPE
 from .mapdrag import MapDrag
 from .mapzoom import MapZoom
+from collections import deque
+
 
 class Map:
     def __init__(self, root, game_controller, case_size=50, map_data = None):
@@ -43,13 +45,9 @@ class Map:
        
         # Ajouter des événements de clic
         self.canvas.bind("<Button-1>", self.on_click)
-        
-        # Bind espace pour retrouver le village facilement
-        print("binding")
-        self.canvas.bind("<a>", self.on_space)
 
-        # Ajouter un binding pour détecter le clic droit
-        self.canvas.bind("<Control-Button-3>", self.clic_droit_village)
+        # Ajouter un binding pour détecter le controle clic gauche
+        self.canvas.bind("<Control-Button-1>", self.clic_gauche_village)
 
     def load_info_map(self):
         with open("src/settings.json", "r") as f:
@@ -77,21 +75,16 @@ class Map:
         self.root.update_idletasks()  # Force l'actualisation de la fenêtre
         self.centrer_sur_village()
 
-    def on_space(self, event):
-        print("a")
-        self.centrer_sur_village()
 
     def centrer_sur_village(self):
         """Centre la carte sur le village du joueur."""
         # Récupérer les coordonnées du village du joueur
-        print("centrer")
-        village_coords = None
+        village_coords = (0,0)
         for village in self.gamecontroller.villages:
-            print("cherche village...")
             if village.noble == self.gamecontroller.joueur:
-                print("village trouve")
                 village_coords = village.get_coords()
-        print(village_coords)
+                break
+
         if not village_coords:
             print("Aucun village trouvé pour centrer la carte.")
             return
@@ -222,7 +215,16 @@ class Map:
                 self.highlight_case(case_instance.row, case_instance.col)
                 print(f"Village sélectionné : {village.nom}")
         elif self.selected_action in action_construire:
-            if self.selected_action == "terrain" and case_instance.proprietaire is None: #and self.gamecontroller.joueur.possede_case_adjacente(case_instance)
+            if self.selected_action == "terrain":
+                if case_instance.proprietaire != None and case_instance.proprietaire != self.gamecontroller.joueur:
+                    self.interface.ajouter_evenement("Ce territoire est déjà possédé par un autre joueur.")
+                    return
+                if case_instance.proprietaire == self.gamecontroller.joueur:
+                    self.interface.ajouter_evenement("Vous possédez déjà ce territoire.")
+                    return
+                if not self.gamecontroller.joueur.possede_case_adjacente(case_instance):
+                    self.interface.ajouter_evenement("Vous devez posséder une case adjacente.")
+                    return
                 """if case_instance not in self.territoire_selectionne and len(self.territoire_selectionne)==1:
                     self.unhighlight_case(self.territoire_selectionne[0].row, self.territoire_selectionne[0].col)
                     self.territoire_selectionne = []
@@ -313,9 +315,9 @@ class Map:
             self.canvas.delete(self.highlighted_cases[(row, col)])
             del self.highlighted_cases[(row, col)]  # Retirer du dictionnaire
 
-    def clic_droit_village(self, event):
+    def clic_gauche_village(self, event):
         """
-        Gère le clic droit sur une case pour afficher les informations du village.
+        Gère le controle clic gauche sur une case pour afficher les informations du village.
         """
         # Calculer les coordonnées de la case cliquée
         row = event.y // self.case_size + self.map_compenser_y
@@ -330,23 +332,21 @@ class Map:
             self.interface.action_bouton_selectionnee = None
             self.village_affiché = village
 
-
-###  A REFAIRE ###
-        def get_village(self, row, col):
-            """
-            Retourne le village associé à une case donnée (row, col), ou None si vide.
-            """
-            # Calculer les coordonnées de la case cliquée
-            row = event.y // self.case_size + self.map_compenser_y
-            col = event.x // self.case_size + self.map_compenser_x
+        # def get_village(self, row, col):
+        #     """
+        #     Retourne le village associé à une case donnée (row, col), ou None si vide.
+        #     """
+        #     # Calculer les coordonnées de la case cliquée
+        #     row = event.y // self.case_size + self.map_compenser_y
+        #     col = event.x // self.case_size + self.map_compenser_x
     
-            # Récupérer les données de la caseule
-            case_instance = self.grid[row][col] # Récupère l'objet Case associé
+        #     # Récupérer les données de la caseule
+        #     case_instance = self.grid[row][col] # Récupère l'objet Case associé
     
-            # Vérifier si la caseule est un village
-            village = case_instance.type
-            self.village_affiché = village
-            return village
+        #     # Vérifier si la caseule est un village
+        #     village = case_instance.type
+        #     self.village_affiché = village
+        #     return village
 
     def get_voisins(self, case):
         """Retourne les voisins (haut, bas, gauche, droite) d'une case."""
@@ -398,9 +398,7 @@ class Map:
         x2 = x1 + self.case_size
         y2 = y1 + self.case_size
         return x1, y1, x2, y2
-    
-    # Guerre
-###  A REFAIRE ###   
+   
     def territoires_adjacents(self, attaquant, defenseur):
         """
         Vérifie si le territoire d'attaquant est adjacent à celui de défenseur.
@@ -413,7 +411,41 @@ class Map:
     
     def chemin_le_plus_court(self,attaquant,defenseur):
         #renvoie le chemin le plus court entre 2 cases de villages differents
-        return
+        """
+        Trouve le chemin le plus court entre deux cases appartenant à des villages différents.
+        :param attaquant: Coordonnées de la case du village attaquant (row, col).
+        :param defenseur: Coordonnées de la case du village défenseur (row, col).
+        :return: Liste des coordonnées représentant le chemin le plus court.
+        """
+        start = attaquant
+        goal = defenseur
+
+        # File pour la recherche en largeur
+        queue = deque([(start, [start])])  # (case actuelle, chemin jusqu'à la case)
+        visited = set()  # Ensemble des cases déjà visitées
+
+        while queue:
+            current, path = queue.popleft()
+
+            if current in visited:
+                continue
+
+            visited.add(current)
+
+            # Si la case actuelle est la cible, renvoyer le chemin
+            if current == goal:
+                #mettre toutes les cases de path en rouge
+                for case in path:
+                    self.highlight_case(case.row, case.col)
+                return path
+
+            # Ajouter les cases adjacentes à la file
+            for voisin in self.get_voisins(current):
+                if voisin not in visited:
+                    queue.append((voisin, path + [voisin]))
+
+        # Si aucun chemin n'est trouvé
+        return []
 
     def to_dict(self):
         return {

@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import font, Toplevel, ttk, filedialog
+from tkinter import font, Toplevel, ttk, filedialog, messagebox
 import json
 from ..models import *
 from ..views.settingsinterface import SettingsInterface
@@ -21,6 +21,7 @@ class JeuInterface:
         # Cadre pour l'affichage des informations en haut
         self.info_frame = tk.Frame(self.main_frame, height=50, bg="#3A3A3A")
         self.info_frame.pack(fill="x", pady=0)
+        self.afficher_bouton_aide()
         self.afficher_informations()
 
         """# Cadre pour la carte (grille)
@@ -38,6 +39,7 @@ class JeuInterface:
         # self.menu_pause_canvas.create_rectangle(0, 0, self.root.winfo_width(), self.root.winfo_height()) 
         # self.menu_pause_canvas.create_image(0,0,image=tk.PhotoImage(file="images/pause.png")) 
         # Cadre pour les boutons dans le menu de pause
+        self.sauvegarde = False
         self.menu_frame = tk.Frame(self.root,bg="#2E2E2E")
 
         # Bouton Continuer
@@ -48,7 +50,7 @@ class JeuInterface:
                                     activebackground="#145374",
                                     activeforeground="white",
                                     bd=0)
-        continue_button.place(relx=0.5, rely=0.3, anchor="center")
+        continue_button.place(relx=0.5, rely=0.25, anchor="center")
 
         # Bouton Paramètres
         settings_button = tk.Button(self.menu_frame, text="Paramètres", command=self.ouvrir_parametres, width=20, height=2,
@@ -58,7 +60,7 @@ class JeuInterface:
                                     activebackground="#145374",
                                     activeforeground="white",
                                     bd=0)
-        settings_button.place(relx=0.5, rely=0.45, anchor="center")
+        settings_button.place(relx=0.5, rely=0.37, anchor="center")
 
         # Bouton Sauvegarder
         save_button = tk.Button(self.menu_frame, text="Sauvegarder", command=self.sauvegarder_partie, width=20, height=2,
@@ -68,7 +70,17 @@ class JeuInterface:
                                     activebackground="#145374",
                                     activeforeground="white",
                                     bd=0)
-        save_button.place(relx=0.5, rely=0.6, anchor="center")
+        save_button.place(relx=0.5, rely=0.49, anchor="center")
+        
+        # Bouton Retour au Menu
+        retour_menu = tk.Button(self.menu_frame, text="Retour au Menu", command=self.retourner_menu, width=20, height=2,
+                                    font=("Helvetica", 16, "bold"),
+                                    bg="#1C6E8C",
+                                    fg="white",
+                                    activebackground="#145374",
+                                    activeforeground="white",
+                                    bd=0)
+        retour_menu.place(relx=0.5, rely=0.61, anchor="center")
 
         # Bouton Quitter
         quit_button = tk.Button(self.menu_frame, text="Quitter", command=self.quitter_jeu, width=20, height=2,
@@ -78,7 +90,7 @@ class JeuInterface:
                                     activebackground="#145374",
                                     activeforeground="white",
                                     bd=0)
-        quit_button.place(relx=0.5, rely=0.75, anchor="center")
+        quit_button.place(relx=0.5, rely=0.73, anchor="center")
         ####
 
         # Cadre principal avec deux colonnes
@@ -104,7 +116,7 @@ class JeuInterface:
 
         self.village_info_label = tk.Label(
             self.village_info_frame,
-            text="Ctrl + Clique droit sur un village pour voir ses informations",
+            text="Ctrl + Clique gauche sur un village pour voir ses informations",
             bg="#2E2E2E",
             fg="#F7F7F7",
             font=("Helvetica", 12),
@@ -116,6 +128,9 @@ class JeuInterface:
         # Zone de texte avec scrollbar pour les événements
         self.journal_text = tk.Text(self.right_frame, wrap=tk.WORD, state=tk.DISABLED, width=30, height=0, bg="#3A3A3A", fg="#F7F7F7")
         self.journal_text.pack(side=tk.LEFT, fill="both", expand=True)
+        self.ajouter_evenement("- - - - - - - - - - - - - - -")
+        self.ajouter_evenement(f"|     Debut de la partie    |")
+        self.ajouter_evenement("- - - - - - - - - - - - - - -\n")
 
         self.scrollbar = ttk.Scrollbar(self.right_frame, orient=tk.VERTICAL, command=self.journal_text.yview)
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -153,18 +168,22 @@ class JeuInterface:
                 # Sauvegarder les données dans un fichier JSON
                 with open(fichier_sauvegarde, 'w', encoding='utf-8') as fichier:
                     json.dump(etat_partie, fichier, indent=4, ensure_ascii=False)
-                self.afficher_message_journal("Partie sauvegardée avec succès !")
+                self.ajouter_evenement("Partie sauvegardée avec succès !")
             else:
-                self.afficher_message_journal("Sauvegarde annulée.")
-        
+                self.ajouter_evenement("Sauvegarde annulée.")
+            self.sauvegarde = True
         except Exception as e:
-            self.afficher_message_journal(f"Erreur lors de la sauvegarde : {e}")
-    
-    def afficher_message_journal(self, message):
-        """Ajoute un message dans le journal."""
-        self.journal_text.config(state=tk.NORMAL)
-        self.journal_text.insert(tk.END, f"{message}\n")
-        self.journal_text.config(state=tk.DISABLED)
+            self.ajouter_evenement(f"Erreur lors de la sauvegarde : {e}")
+            
+    def retourner_menu(self):
+        from src.views import MenuPrincipal 
+        if self.voulez_sauvegarder():
+            self.sauvegarder_partie()
+            self.main_frame.pack_forget()
+            MenuPrincipal(self.root)
+        else:
+            self.main_frame.pack_forget()
+            MenuPrincipal(self.root)
         
     def ouvrir_menu_pause(self, event=None):
         """Affiche le menu de pause (superposé à l'interface du jeu)"""
@@ -182,7 +201,35 @@ class JeuInterface:
 
     def quitter_jeu(self):
         """Quitte le jeu"""
+        if self.voulez_sauvegarder():
+            self.sauvegarder_partie()
         self.root.quit()
+        
+    def voulez_sauvegarder(self):
+        if not self.sauvegarde: 
+            return tk.messagebox.askyesno(title="Sauvegarde", message="Voulez vous sauvegarder avant de partir?")
+        else:
+            return False
+    
+    def show_help(self, event):
+        # Afficher une boîte de message avec les explications du jeu
+        from src.views import AideInterface
+        AideInterface = AideInterface(self.root, self.main_frame)
+        AideInterface.afficher()
+
+    def afficher_bouton_aide(self):
+        # Créer le canvas pour le point d'interrogation
+        self.help_canvas = tk.Canvas(self.info_frame, width=30, height=30, bg="#3A3A3A", highlightthickness=0)
+        self.help_canvas.pack(side="left", padx=0)  # Positionner en haut à gauche
+
+        # Dessiner le rond blanc
+        self.help_canvas.create_oval(5, 5, 25, 25, fill="#3A3A3A",outline='white')
+
+        # Dessiner le point d'interrogation
+        self.help_canvas.create_text(15, 15, text="?", fill="white", font=("Helvetica", 12, "bold"))
+
+        # Rendre le canvas cliquable
+        self.help_canvas.bind("<Button-1>", self.show_help)
 
     def afficher_informations(self):
         label_font = font.Font(family="Helvetica", size=14, weight="bold")
@@ -223,24 +270,25 @@ class JeuInterface:
             widget.destroy()
         self.village_info_label = tk.Label(
             self.village_info_frame,
-            text="Ctrl + Clique droit sur un village pour voir ses informations",
+            text="Ctrl + Clique gauche sur un village pour voir ses informations",
             bg="#2E2E2E",
             fg="#F7F7F7",
             font=("Helvetica", 12),
             wraplength=200,
             justify="left",
+            anchor="center"
         )
         self.village_info_label.pack(fill="both", expand=True, padx=3, pady=(0,0))
         if village:
             infos = (
-                f"              {village.nom}\n\n"
+                f"                {village.case.proprietaire.nom}\n\n"
                 f"Population : {village.population}\n"
                 f"Ressources habitants : {village.total_ressources}\n"
                 f"Argent habitants : {village.total_argent}"
                 #f"Seigneur : {village.seigneur.nom if village.seigneur else 'Aucun'}"
             )
         else:
-            infos = "Ctrl + Clique droit sur un village pour voir ses informations"
+            infos = "Ctrl + Clique gauche sur un village pour voir ses informations"
 
         self.village_info_label.config(text=infos)
 
@@ -691,6 +739,7 @@ class JeuInterface:
 
     def executer_action_selectionnee(self):
         from src.models import Immigration, Seigneur
+        self.sauvegarde = False
         if self.action_selectionnee != None:
             if self.action_selectionnee == "impot":
                 if self.map.selected_villages != []:
@@ -698,9 +747,12 @@ class JeuInterface:
                     self.ajouter_evenement("Action exécutée: Impot")
                     impot = 0
                     impot = self.gamecontroller.joueur.percevoir_impot(self.map.selected_villages)
-                    self.ajouter_evenement(f"Impôt perçu: {impot}\n")
+                    self.ajouter_evenement(f"Impôt perçu: {impot}")
+                    self.ajouter_evenement(f"Des villages :")
+                    for i in self.map.selected_villages:
+                        self.ajouter_evenement(f"{i.nom}")
+                    self.ajouter_evenement("")
                     #self.gamecontroller.appliquer_evenements(self.gamecontroller.joueur.village_noble.habitants)
-                    self.mettre_a_jour_infos()
                     self.finir_tour()
                 else:
                     self.ajouter_evenement("Vous devez choisir un village")
@@ -813,12 +865,69 @@ class JeuInterface:
                     self.gamecontroller.joueur.diminuer_ressources(int(self.quantite_achete_vend))
                     self.gamecontroller.joueur.augmenter_argent(int(self.quantite_achete_vend*0.8))
                     self.ajouter_evenement("Vous avez vendu "+str(int(self.quantite_achete_vend))+" ressources pour "+str(int(self.quantite_achete_vend*0.8))+" argent\n")
-
+                    if self.verifier_fin_partie() == False:
+                        self.finir_tour()
+                    else:
+                        pass
+        else:
+            if self.verifier_fin_partie() == False:
                 self.finir_tour()
-                
+            else:
+                pass
+           
+    def verifier_fin_partie(self):
+        """
+        Vérifie si le joueur a perdu (pas d'instance self.joueur).
+        Si c'est le cas, désactive tous les widgets et affiche un message.
+        """
+        x="perdu"
+        if isinstance(self.gamecontroller.joueur, Seigneur):
+            x="gagné"
+            for i in self.gamecontroller.nobles:
+                if i.seigneur != self.gamecontroller.joueur:
+                    x="perdu"
+            
+        if self.gamecontroller.joueur == None or x=="gagné":
+            
+            # Mettre un frame transparent pour ne plus pouvoir cliquer sur les éléments du jeu
+            self.overlay_frame = tk.Frame(self.root,bg='')
+            self.overlay_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+            
+            self.affiche_frame = tk.Frame(self.overlay_frame, bg="#2E2E2E")
+            self.affiche_frame.place(relx=0, rely=0.31, relwidth=1, relheight=0.38)
+            
+            # Afficher un message indiquant que le joueur a perdu
+            message_perdu = tk.Label(
+                self.root,
+                text=f"Vous avez {x} !",
+                font=("Helvetica", 24, "bold"),
+                fg="white",
+                bg="#2E2E2E"  # Couleur de fond de la fenêtre
+            )
+            message_perdu.place(relx=0.5, rely=0.43, anchor="center")  # Centrer le message
+
+            # Ajouter éventuellement un bouton pour quitter ou redémarrer
+            quitter_bouton = tk.Button(
+                self.root,
+                text="Quitter",
+                command=self.root.quit,
+                font=("Helvetica", 14),
+                bg="#1C6E8C",
+                fg="white",
+                activebackground="#145374",
+                activeforeground="white",
+                bd=0
+            )
+            quitter_bouton.place(relx=0.5, rely=0.57, anchor="center")  # Position en dessous du message
+            #self.root.resizable(False, False)  # Désactiver la redimension de la fenêtre
+            return True
+        else:
+            return False
+
     
     def finir_tour(self):
         """reset les actions selectionnées"""
+        
         self.action_selectionnee = None
         self.action_bouton_selectionnee = None
         self.quantite_achete_vend = 0
@@ -835,10 +944,11 @@ class JeuInterface:
         self.map.territoire_selectionne = []
 
         self.gamecontroller.tour_suivant()
-        
-        self.mettre_a_jour_infos()
-        #self.gamecontroller.joueur.village_noble.afficher_statut()
-        self.mettre_a_jour_infos_village(self.map.village_affiché)
-        self.map.mettre_a_jour_bordures()
-        self.map.dessiner_map_visible()
+        if self.verifier_fin_partie() == False:
+            self.mettre_a_jour_infos()
+            self.mettre_a_jour_infos_village(self.map.village_affiché)
+            self.map.mettre_a_jour_bordures()
+            self.map.dessiner_map_visible()
+        else:
+            pass
     

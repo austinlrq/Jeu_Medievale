@@ -11,6 +11,7 @@ class Seigneur(Noble):
 
     def __init__(self, nom: str, age: int, ressources: int, argent: int, bonheur: int, couleur_bordure="#FFFFFF", capacite_habitants=10, capacite_soldats=5):
         super().__init__(nom, age, ressources, argent, bonheur)
+        self.village_noble = None
         self.couleur_bordure = couleur_bordure  # Couleur unique pour le seigneur
         self.vassaux: List[Noble] = []
         self.armee: List[Soldat] = []  # Liste des soldats dans l'armée du Seigneur

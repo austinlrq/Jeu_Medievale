@@ -133,6 +133,9 @@ class MenuPrincipal:
 
     def charger_partie(self):
         fichier = filedialog.askopenfilename(filetypes=[("Fichiers JSON", "*.json")])
+        if not fichier:
+            # Si l'utilisateur clique sur "Annuler", retourner sans faire d'autres actions
+            return
         if fichier:
             with open(fichier, "r") as f:
                 try:
@@ -148,6 +151,8 @@ class MenuPrincipal:
                 except json.JSONDecodeError:
                     print("Erreur lors de la lecture du fichier JSON.")
         self.menu_frame.pack_forget()  # Cache le menu principal
+        self.root.minsize(900,600)
+        self.root.maxsize(11520, 11520)
         self.game_frame = tk.Frame(self.root, bg="#2E2E2E")
         self.game_frame.pack(fill="both", expand=True)
         from ..controllers import GameController
