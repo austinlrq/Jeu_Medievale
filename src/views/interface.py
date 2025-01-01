@@ -24,74 +24,9 @@ class JeuInterface:
         self.afficher_bouton_aide()
         self.afficher_informations()
 
-        """# Cadre pour la carte (grille)
-        self.map_frame = tk.Frame(self.main_frame, bg="#2E2E2E")
-        self.map_frame.pack(expand=True, fill="both", padx=20, pady=10)
-        from .map import Map
-        self.map = Map(self.map_frame, self.gamecontroller, rows=10, cols=10, case_size=50)"""
-
         # Gestion de l'événement Échap pour ouvrir le menu pause
         self.root.bind("<Escape>", self.ouvrir_menu_pause)
-
-        ### MENU PAUSE ###
-        # Cadre du menu de pause (invisible au départ)
-        # Créer un fond 
-        # self.menu_pause_canvas.create_rectangle(0, 0, self.root.winfo_width(), self.root.winfo_height()) 
-        # self.menu_pause_canvas.create_image(0,0,image=tk.PhotoImage(file="images/pause.png")) 
-        # Cadre pour les boutons dans le menu de pause
         self.sauvegarde = False
-        self.menu_frame = tk.Frame(self.root,bg="#2E2E2E")
-
-        # Bouton Continuer
-        continue_button = tk.Button(self.menu_frame, text="Reprendre", command=self.continuer_jeu, width=20, height=2,
-                                    font=("Helvetica", 16, "bold"),
-                                    bg="#1C6E8C",
-                                    fg="white",
-                                    activebackground="#145374",
-                                    activeforeground="white",
-                                    bd=0)
-        continue_button.place(relx=0.5, rely=0.25, anchor="center")
-
-        # Bouton Paramètres
-        settings_button = tk.Button(self.menu_frame, text="Paramètres", command=self.ouvrir_parametres, width=20, height=2,
-                                    font=("Helvetica", 16, "bold"),
-                                    bg="#1C6E8C",
-                                    fg="white",
-                                    activebackground="#145374",
-                                    activeforeground="white",
-                                    bd=0)
-        settings_button.place(relx=0.5, rely=0.37, anchor="center")
-
-        # Bouton Sauvegarder
-        save_button = tk.Button(self.menu_frame, text="Sauvegarder", command=self.sauvegarder_partie, width=20, height=2,
-                                    font=("Helvetica", 16, "bold"),
-                                    bg="#1C6E8C",
-                                    fg="white",
-                                    activebackground="#145374",
-                                    activeforeground="white",
-                                    bd=0)
-        save_button.place(relx=0.5, rely=0.49, anchor="center")
-        
-        # Bouton Retour au Menu
-        retour_menu = tk.Button(self.menu_frame, text="Retour au Menu", command=self.retourner_menu, width=20, height=2,
-                                    font=("Helvetica", 16, "bold"),
-                                    bg="#1C6E8C",
-                                    fg="white",
-                                    activebackground="#145374",
-                                    activeforeground="white",
-                                    bd=0)
-        retour_menu.place(relx=0.5, rely=0.61, anchor="center")
-
-        # Bouton Quitter
-        quit_button = tk.Button(self.menu_frame, text="Quitter", command=self.quitter_jeu, width=20, height=2,
-                                    font=("Helvetica", 16, "bold"),
-                                    bg="#D9455F",
-                                    fg="white",
-                                    activebackground="#145374",
-                                    activeforeground="white",
-                                    bd=0)
-        quit_button.place(relx=0.5, rely=0.73, anchor="center")
-        ####
 
         # Cadre principal avec deux colonnes
         self.main_content = tk.Frame(self.main_frame, bg="#2E2E2E")
@@ -101,7 +36,7 @@ class JeuInterface:
         self.map_frame = tk.Frame(self.main_content, bg="#2E2E2E")
         self.map_frame.pack(side=tk.LEFT, expand=True, fill="both")
         from .map import Map
-        self.map = Map(self.map_frame, self.gamecontroller, case_size=50, map_data = map_data)
+        self.map = Map(self.map_frame, self.gamecontroller, self, case_size=50, map_data = map_data)
         self.map.interface = self
 
         # Colonne de droite : cadre principal pour les informations et le journal
@@ -169,9 +104,10 @@ class JeuInterface:
                 with open(fichier_sauvegarde, 'w', encoding='utf-8') as fichier:
                     json.dump(etat_partie, fichier, indent=4, ensure_ascii=False)
                 self.ajouter_evenement("Partie sauvegardée avec succès !")
+                self.sauvegarde = True
             else:
                 self.ajouter_evenement("Sauvegarde annulée.")
-            self.sauvegarde = True
+                self.sauvegarde = False
         except Exception as e:
             self.ajouter_evenement(f"Erreur lors de la sauvegarde : {e}")
             
@@ -187,12 +123,73 @@ class JeuInterface:
         
     def ouvrir_menu_pause(self, event=None):
         """Affiche le menu de pause (superposé à l'interface du jeu)"""
+        self.root.bind("<Escape>", self.continuer_jeu)
+        
+        self.menu_frame = tk.Frame(self.root,bg="#2E2E2E")
+        
+        texte_menu = tk.Label(self.menu_frame, text="Menu Pause", font=("Helvetica", 24, "bold"), bg="#2E2E2E", fg="#F7F7F7", width=20, height=2)
+        texte_menu.place(relx=0.5, rely=0.12, anchor="center")
+        # Bouton Continuer
+        continue_button = tk.Button(self.menu_frame, text="Reprendre", command=self.continuer_jeu, width=20, height=2,
+                                    font=("Helvetica", 16, "bold"),
+                                    bg="#1C6E8C",
+                                    fg="white",
+                                    activebackground="#145374",
+                                    activeforeground="white",
+                                    bd=0)
+        continue_button.place(relx=0.30, rely=0.35, anchor="center")
+
+        # Bouton Paramètres
+        settings_button = tk.Button(self.menu_frame, text="Paramètres", command=self.ouvrir_parametres, width=20, height=2,
+                                    font=("Helvetica", 16, "bold"),
+                                    bg="#1C6E8C",
+                                    fg="white",
+                                    activebackground="#145374",
+                                    activeforeground="white",
+                                    bd=0)
+        settings_button.place(relx=0.30, rely=0.55, anchor="center")
+        
+        # Separateur
+        separateur = ttk.Separator(self.menu_frame, orient="vertical")
+        separateur.place(relx=0.5, rely=0.45, anchor="center", relheight=0.4)
+
+        # Bouton Sauvegarder
+        save_button = tk.Button(self.menu_frame, text="Sauvegarder", command=self.sauvegarder_partie, width=20, height=2,
+                                    font=("Helvetica", 16, "bold"),
+                                    bg="#1C6E8C",
+                                    fg="white",
+                                    activebackground="#145374",
+                                    activeforeground="white",
+                                    bd=0)
+        save_button.place(relx=0.70, rely=0.35, anchor="center")
+        
+        # Bouton Retour au Menu
+        retour_menu = tk.Button(self.menu_frame, text="Retour au Menu", command=self.retourner_menu, width=20, height=2,
+                                    font=("Helvetica", 16, "bold"),
+                                    bg="#1C6E8C",
+                                    fg="white",
+                                    activebackground="#145374",
+                                    activeforeground="white",
+                                    bd=0)
+        retour_menu.place(relx=0.70, rely=0.55, anchor="center")
+
+        # Bouton Quitter
+        quit_button = tk.Button(self.menu_frame, text="Quitter", command=self.quitter_jeu, width=20, height=2,
+                                    font=("Helvetica", 16, "bold"),
+                                    bg="#D9455F",
+                                    fg="white",
+                                    activebackground="#145374",
+                                    activeforeground="white",
+                                    bd=0)
+        quit_button.place(relx=0.5, rely=0.80, anchor="center")
+
         self.menu_frame.place(relx=0.5, rely=0.5, anchor="center", relwidth=1.0, relheight=1.0)  # Afficher le menu de pause
 
-    def continuer_jeu(self):
+    def continuer_jeu(self, event=None):
         """Cache le menu de pause et reprend le jeu"""
         self.menu_frame.place_forget()  # Cache le menu de pause
         self.map.drag_manager.load_sensi()
+        self.root.bind("<Escape>", self.ouvrir_menu_pause)
 
     def ouvrir_parametres(self):
         """Ouvre une fenêtre pour les paramètres du jeu"""
@@ -747,11 +744,8 @@ class JeuInterface:
                     self.ajouter_evenement("Action exécutée: Impot")
                     impot = 0
                     impot = self.gamecontroller.joueur.percevoir_impot(self.map.selected_villages)
-                    self.ajouter_evenement(f"Impôt perçu: {impot}")
-                    self.ajouter_evenement(f"Des villages :")
-                    for i in self.map.selected_villages:
-                        self.ajouter_evenement(f"{i.nom}")
-                    self.ajouter_evenement("")
+                    self.ajouter_evenement(f"Impôt perçu: {impot}\n")
+  
                     #self.gamecontroller.appliquer_evenements(self.gamecontroller.joueur.village_noble.habitants)
                     self.finir_tour()
                 else:
@@ -859,18 +853,17 @@ class JeuInterface:
                     self.gamecontroller.joueur.augmenter_ressources(int(self.quantite_achete_vend*1.2))
                     self.gamecontroller.joueur.diminuer_argent(int(self.quantite_achete_vend))
                     self.ajouter_evenement("Vous avez acheté "+str(int(self.quantite_achete_vend*1.2))+" ressources pour "+str(int(self.quantite_achete_vend))+" argent\n")
+                    self.finir_tour()
                 elif self.action_selectionnee == "vendre":
                     self.afficher_tour_journal()
                     self.ajouter_evenement("Action exécutée: Vendre ressources\n")
                     self.gamecontroller.joueur.diminuer_ressources(int(self.quantite_achete_vend))
                     self.gamecontroller.joueur.augmenter_argent(int(self.quantite_achete_vend*0.8))
                     self.ajouter_evenement("Vous avez vendu "+str(int(self.quantite_achete_vend))+" ressources pour "+str(int(self.quantite_achete_vend*0.8))+" argent\n")
-                    if self.verifier_fin_partie() == False:
-                        self.finir_tour()
-                    else:
-                        pass
+                    self.finir_tour()
         else:
             if self.verifier_fin_partie() == False:
+                self.afficher_tour_journal()
                 self.finir_tour()
             else:
                 pass
@@ -919,6 +912,8 @@ class JeuInterface:
                 bd=0
             )
             quitter_bouton.place(relx=0.5, rely=0.57, anchor="center")  # Position en dessous du message
+            #enlever le bind echap
+            self.root.unbind("<Escape>") # Enlever le binding de la touche Escape
             #self.root.resizable(False, False)  # Désactiver la redimension de la fenêtre
             return True
         else:

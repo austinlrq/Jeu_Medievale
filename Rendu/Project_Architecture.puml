@@ -1,0 +1,87 @@
+@startuml
+skinparam linetype ortho
+
+class Personne {
+    <<Base>>
+}
+
+class Roturier {
+    Hérite de Personne
+}
+
+class Paysan {
+    Hérite de Roturier
+}
+
+class Noble {
+    Hérite de Personne
+    Possède armée : Soldat
+    Possède : Village
+}
+
+class Seigneur {
+    Hérite de Noble
+    A comme vassaux : Noble
+    Lance : Tentative de Vassalisation
+    Attaquant/Défenseur : Guerre
+}
+
+class Soldat
+
+class Village {
+    Contient habitants : Roturier, Paysan
+}
+
+class Fief {
+    Regroupe : Village
+}
+
+class Evenement {
+    <<Base>>
+}
+
+class RécolteAbondante {
+    Hérite de Evenement
+}
+
+class Épidémie {
+    Hérite de Evenement
+}
+
+class TentativeVassalisation {
+    Lancée par : Seigneur
+    Cible : Noble
+}
+
+class Guerre {
+    Attaque et défense
+}
+
+class Immigration {
+    Appliquée à : Noble
+}
+
+class GameController {
+    Gère : Village, Noble, Seigneur
+}
+
+Personne <|-- Roturier
+Roturier <|-- Paysan
+Personne <|-- Noble
+Noble <|-- Seigneur
+Noble o-- Soldat
+Noble o-- Village
+Seigneur o-- Noble 
+Village o-- Roturier
+Village o-- Paysan
+Fief o-- Village
+Evenement <|-- RécolteAbondante
+Evenement <|-- Épidémie
+Seigneur o-- TentativeVassalisation 
+TentativeVassalisation o-- Noble 
+Seigneur o-- Guerre
+Immigration o-- Noble 
+GameController o-- Village
+GameController o-- Noble
+GameController o-- Seigneur
+@enduml

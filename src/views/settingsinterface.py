@@ -17,84 +17,98 @@ class SettingsInterface:
         self.nb_village = data["NB_VILLAGE"]
         self.sensibilite = data["SENSIBILITE"]
         self.seed = data["SEED"]
+        
+    def quitter(self):
+        """Retour au menu principal."""
+        self.settings_frame.place_forget()
+        self.frame.pack(fill="both", expand=True)
 
     def creer_visu(self, en_jeu):
-        """Création des éléments visuels pour l'interface des paramètres avec Scrollbar et layout en grille."""
+        """Création des éléments visuels pour l'interface des paramètres."""
         # Cache l'ancien frame
         self.frame.pack_forget()
-        self.canvas = tk.Canvas(self.root, bg="#2E2E2E", highlightthickness=0)
-        self.scrollbar = tk.Scrollbar(self.root, orient="vertical", command=self.canvas.yview)
-        self.scrollable_frame = tk.Frame(self.canvas, bg="#2E2E2E")
 
-        self.scrollable_frame.bind(
-            "<Configure>",
-            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-        )
+        # Création d'un nouveau frame
+        self.settings_frame = tk.Frame(self.root, bg="#2E2E2E")
+        self.settings_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
 
-        self.window_id = self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-        self.canvas.configure(yscrollcommand=self.scrollbar.set)
-
-        # Affichage des widgets
-        self.canvas.pack(side="left", fill="both", expand=True)
-        self.scrollbar.pack(side="right", fill="y")
-
-        # Configuration des colonnes pour centrer
-        self.scrollable_frame.columnconfigure(0, weight=1)  # Colonne gauche (vide)
-        self.scrollable_frame.columnconfigure(1, weight=0)  # Colonne avec les labels
-        self.scrollable_frame.columnconfigure(2, weight=0)  # Colonne avec les widgets
-        self.scrollable_frame.columnconfigure(3, weight=1)  # Colonne droite (vide)
-
-        # Widgets de l'interface des paramètres
         self.lire_fichier()
+        
+        # Ajouter le bouton "Retour"
+        self.bouton_quitter = tk.Button(
+            self.settings_frame, 
+            text="<  Retour", 
+            command=self.quitter, 
+            font=("Helvetica", 16, "bold"),
+            bg="#2E2E2E",
+            fg="white",
+            activebackground="#2E2E2E",
+            activeforeground="white",
+            bd=0,
+            padx=10,
+            pady=5
+        )
+        self.bouton_quitter.pack(side="top", anchor="nw")
 
-        # Label "Settings" en haut
-        title_label = tk.Label(self.scrollable_frame, text="Settings", font=("Helvetica", 20, "bold"), bg="#2E2E2E", fg="#F7F7F7")
-        title_label.grid(row=0, column=1, columnspan=2, pady=20)  # Centré sur deux colonnes
+        # Titre
+        title_label = tk.Label(self.settings_frame, text="Paramètres", font=("Helvetica", 20, "bold"), bg="#2E2E2E", fg="#F7F7F7")
+        title_label.place(relx=0.5, rely=0.1, anchor="center")
 
         # Sensibilité
-        self.label_sensi = tk.Label(self.scrollable_frame, text="Sensibilité :", font=self.title_font, bg="#2E2E2E", fg="#F7F7F7")
-        self.label_sensi.grid(row=1, column=1, sticky="e", padx=10, pady=10)
-        self.sensibilite_range = tk.Scale(self.scrollable_frame, from_=1, to=10, orient=tk.HORIZONTAL, bg="#2E2E2E", fg="#F7F7F7", 
-                                        highlightthickness=0, borderwidth=0, troughcolor="#1C1C1C")
+        label_sensi = tk.Label(self.settings_frame, text="Sensibilité :", font=self.title_font, bg="#2E2E2E", fg="#F7F7F7")
+        label_sensi.place(relx=0.4, rely=0.2, anchor="e")
+        self.sensibilite_range = tk.Scale(self.settings_frame, from_=1, to=10, orient=tk.HORIZONTAL, bg="#2E2E2E", fg="#F7F7F7",
+                                          highlightthickness=0, troughcolor="#1C1C1C")
         self.sensibilite_range.set(self.sensibilite)
-        self.sensibilite_range.grid(row=1, column=2, sticky="w", padx=10, pady=(0, 14))  # Centré avec scale à droite
+        self.sensibilite_range.place(relx=0.45, rely=0.2, anchor="w")
 
         # Hauteur de la carte
-        self.label_hauteur_map = tk.Label(self.scrollable_frame, text="Hauteur de la carte :", font=self.title_font, bg="#2E2E2E", fg="#F7F7F7")
-        self.label_hauteur_map.grid(row=2, column=1, sticky="e", padx=10, pady=10)
+        label_hauteur_map = tk.Label(self.settings_frame, text="Hauteur de la carte :", font=self.title_font, bg="#2E2E2E", fg="#F7F7F7")
+        label_hauteur_map.place(relx=0.4, rely=0.3, anchor="e")
         self.hauteur_map_var = tk.IntVar(value=self.hauteur_map)
-        self.hauteur_map_menu = tk.OptionMenu(self.scrollable_frame, self.hauteur_map_var, 25, 50, 75, 100)
-        self.hauteur_map_menu.config(font=("Helvetica", 14), bg="#2E2E2E", fg="#F7F7F7",
-                                    highlightthickness=0, borderwidth=0)
-        self.hauteur_map_menu.grid(row=2, column=2, sticky="w", padx=10, pady=10)
+        hauteur_map_menu = tk.OptionMenu(self.settings_frame, self.hauteur_map_var, 25, 50, 75, 100)
+        hauteur_map_menu.config(font=("Helvetica", 14), bg="#2E2E2E", fg="#F7F7F7", highlightthickness=0)
+        hauteur_map_menu.place(relx=0.45, rely=0.3, anchor="w")
 
         # Largeur de la carte
-        self.label_largeur_map = tk.Label(self.scrollable_frame, text="Largeur de la carte :", font=self.title_font, bg="#2E2E2E", fg="#F7F7F7")
-        self.label_largeur_map.grid(row=3, column=1, sticky="e", padx=10, pady=10)
+        label_largeur_map = tk.Label(self.settings_frame, text="Largeur de la carte :", font=self.title_font, bg="#2E2E2E", fg="#F7F7F7")
+        label_largeur_map.place(relx=0.4, rely=0.4, anchor="e")
         self.largeur_map_var = tk.IntVar(value=self.largeur_map)
-        self.largeur_map_menu = tk.OptionMenu(self.scrollable_frame, self.largeur_map_var, 25, 50, 75, 100)
-        self.largeur_map_menu.config(font=("Helvetica", 14), bg="#2E2E2E", fg="#F7F7F7",
-                                    highlightthickness=0, borderwidth=0)
-        self.largeur_map_menu.grid(row=3, column=2, sticky="w", padx=10, pady=10)
+        largeur_map_menu = tk.OptionMenu(self.settings_frame, self.largeur_map_var, 25, 50, 75, 100)
+        largeur_map_menu.config(font=("Helvetica", 14), bg="#2E2E2E", fg="#F7F7F7", highlightthickness=0)
+        largeur_map_menu.place(relx=0.45, rely=0.4, anchor="w")
 
         # Nombre de villages
-        self.label_villages = tk.Label(self.scrollable_frame, text="Nombre de villages :", font=self.title_font, bg="#2E2E2E", fg="#F7F7F7")
-        self.label_villages.grid(row=4, column=1, sticky="e", padx=10, pady=10)
-        self.villages_range = tk.Scale(self.scrollable_frame, from_=1, to=6, orient=tk.HORIZONTAL, bg="#2E2E2E", fg="#F7F7F7",
-                                    highlightthickness=0, borderwidth=0, troughcolor="#1C1C1C")
+        label_villages = tk.Label(self.settings_frame, text="Nombre de villages :", font=self.title_font, bg="#2E2E2E", fg="#F7F7F7")
+        label_villages.place(relx=0.4, rely=0.5, anchor="e")
+        self.villages_range = tk.Scale(self.settings_frame, from_=1, to=6, orient=tk.HORIZONTAL, bg="#2E2E2E", fg="#F7F7F7",
+                                       highlightthickness=0, troughcolor="#1C1C1C")
         self.villages_range.set(self.nb_village)
-        self.villages_range.grid(row=4, column=2, sticky="w", padx=10, pady=(0, 14))
+        self.villages_range.place(relx=0.45, rely=0.5, anchor="w")
 
-        # Seed (input entry)
-        self.label_seed = tk.Label(self.scrollable_frame, text="Seed :", font=self.title_font, bg="#2E2E2E", fg="#F7F7F7")
-        self.label_seed.grid(row=5, column=1, sticky="e", padx=10, pady=10)
-        self.seed_entry = tk.Entry(self.scrollable_frame, font=("Helvetica", 14), bg="#F7F7F7", fg="#2E2E2E")
+        # Seed
+        label_seed = tk.Label(self.settings_frame, text="Seed :", font=self.title_font, bg="#2E2E2E", fg="#F7F7F7")
+        label_seed.place(relx=0.4, rely=0.6, anchor="e")
+        self.seed_entry = tk.Entry(self.settings_frame, font=("Helvetica", 14), bg="#F7F7F7", fg="#2E2E2E")
         self.seed_entry.insert(0, str(self.seed))
-        self.seed_entry.grid(row=5, column=2, sticky="w", padx=10, pady=10)
+        self.seed_entry.place(relx=0.45, rely=0.6, anchor="w", width=200)
+        
+        if en_jeu:
+            hauteur_map_menu.config(state="disabled")
+            label_hauteur_map.config(fg="gray")
+
+            largeur_map_menu.config(state="disabled")
+            label_largeur_map.config(fg="gray")
+
+            self.villages_range.config(state="disabled")
+            label_villages.config(fg="gray")
+
+            self.seed_entry.config(state="disabled")
+            label_seed.config(fg="gray")
 
         # Bouton pour sauvegarder
-        self.save_button = tk.Button(self.scrollable_frame, text="Sauver", font=("Helvetica", 16, "bold"), command=self.sauver, bg="#1C6E8C", fg="white", bd= 0)
-        self.save_button.grid(row=6, column=1, columnspan=2, pady=20)
+        save_button = tk.Button(self.settings_frame, text="Sauvegarder", font=("Helvetica", 16, "bold"), command=self.sauver, bg="#1C6E8C", fg="white", activebackground="#145374",activeforeground="white", relief="flat")
+        save_button.place(relx=0.5, rely=0.8, anchor="center", width=150, height=50)
 
     def sauver(self):
         """Sauvegarde les paramètres modifiés dans le fichier JSON."""
@@ -114,7 +128,6 @@ class SettingsInterface:
         with open("src/settings.json", "w") as f:
             json.dump(data, f)
 
-        # Revenir au menu
-        self.canvas.pack_forget()
-        self.scrollbar.pack_forget()
-        self.frame.place(relx=0.5, rely=0.5, anchor="center", relwidth=1.0, relheight=1.0)
+        # Revenir au menu principal
+        self.settings_frame.place_forget()
+        self.frame.pack(fill="both", expand=True)

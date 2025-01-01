@@ -66,40 +66,37 @@ class Noble(Personne):
             nouveau_noble = Noble(plus_riche.nom, plus_riche.age, plus_riche.ressources, plus_riche.argent, plus_riche.bonheur)
             nouveau_noble.village_noble = self.village_noble  # Transfert du village au nouveau noble
             self.village_noble.habitants.remove(plus_riche)  # Retire le plus riche des habitants
-
-            # Retourne une instance de Seigneur avec le village géré par le nouveau noble
-            seigneur = Seigneur(self.nom, self.age, self.ressources, self.argent, self.bonheur, self.couleur_bordure, self.capacite_habitants, self.capacite_soldats)
-            seigneur.village_noble = self.village_noble
-            seigneur.vassaux.append(nouveau_noble)
-            seigneur.vassaux.append(noble_vassalisé)
-            seigneur.cases = self.cases
-            seigneur.capacite_habitants += noble_vassalisé.capacite_habitants
-            seigneur.capacite_soldats += noble_vassalisé.capacite_soldats
-            nouveau_noble.seigneur = seigneur
-            nouveau_noble.village_noble = self.village_noble
-            nouveau_noble.cases = []
-            noble_vassalisé.seigneur = seigneur
-            noble_vassalisé.capacité_habitants = 0
-            noble_vassalisé.capacité_soldats = 0
-            for case in seigneur.cases:
-                case.proprietaire = seigneur
-            print(noble_vassalisé.cases)
-            # Transfert des cases du noble vassalisé au seigneur
-            for case in noble_vassalisé.cases:
-                seigneur.ajouter_case(case)
-                case.proprietaire = seigneur
-            noble_vassalisé.cases.clear()
-            print(seigneur.cases)
-
-            print(f"{self.nom} devient seigneur, et {plus_riche.nom} devient noble et gère le village.")
-            return seigneur, nouveau_noble
         else:
-            print("Pas d'habitants disponibles pour devenir noble.")
-            return None
+            nouveau_noble = Noble("Nouveau Noble", 20, 0, 0, 5)
+            nouveau_noble.village_noble = self.village_noble
+
+        # Retourne une instance de Seigneur avec le village géré par le nouveau noble
+        seigneur = Seigneur(self.nom, self.age, self.ressources, self.argent, self.bonheur, self.couleur_bordure, self.capacite_habitants, self.capacite_soldats)
+        seigneur.village_noble = self.village_noble
+        seigneur.vassaux.append(nouveau_noble)
+        seigneur.vassaux.append(noble_vassalisé)
+        seigneur.cases = self.cases
+        seigneur.capacite_habitants += noble_vassalisé.capacite_habitants
+        seigneur.capacite_soldats += noble_vassalisé.capacite_soldats
+        nouveau_noble.seigneur = seigneur
+        nouveau_noble.village_noble = self.village_noble
+        nouveau_noble.cases = []
+        noble_vassalisé.seigneur = seigneur
+        noble_vassalisé.capacité_habitants = 0
+        noble_vassalisé.capacité_soldats = 0
+        for case in seigneur.cases:
+            case.proprietaire = seigneur
+        # Transfert des cases du noble vassalisé au seigneur
+        for case in noble_vassalisé.cases:
+            seigneur.ajouter_case(case)
+            case.proprietaire = seigneur
+        noble_vassalisé.cases.clear()
+        print(f"{self.nom} devient seigneur, et {plus_riche.nom} devient noble et gère le village.")
+        return seigneur, nouveau_noble
+
         
     def devenir_seigneur_contre_seigneur(self, seigneur):
         from .seigneur import Seigneur
-        print(len(seigneur.vassaux))
         nouv_seigneur = Seigneur(self.nom, self.age, self.ressources, self.argent, self.bonheur, self.couleur_bordure, self.capacite_habitants, self.capacite_soldats)
         nouv_seigneur.village_noble = self.village_noble
         nouv_seigneur.capacite_habitants += seigneur.capacite_habitants
@@ -120,12 +117,7 @@ class Noble(Personne):
         nouveau_noble.village_noble = self.village_noble
         nouveau_noble.village_noble.proprietaire = nouveau_noble
         nouv_seigneur.ajouter_vassal(nouveau_noble)
-        print(len(nouv_seigneur.cases))
         return nouv_seigneur, nouveau_noble
-        
-        
-
-
 
 
     def possede_case_adjacente(self, case):

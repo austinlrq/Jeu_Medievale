@@ -22,15 +22,15 @@ class MenuPrincipal:
 
     def cree_menu(self):
         self.root.title("Menu Principal")
-        self.root.geometry("520x520")
-        self.root.minsize(520, 520)
-        self.root.maxsize(520, 520)
+        self.root.geometry("540x530")
+        self.root.minsize(540, 530)
+        #self.root.maxsize(540, 530)
         try:
             self.root.iconbitmap("images/81709.ico")
         except tk.TclError:
             print("Icon file not found or unsupported format. Skipping icon setting.")
         self.root.configure(bg="#2E2E2E")
-        self.root.resizable(False, True)
+        self.root.resizable(True, True)
 
         # Cadre du menu principal
         self.menu_frame = tk.Frame(self.root, bg="#2E2E2E")
@@ -46,10 +46,10 @@ class MenuPrincipal:
 
         title_font = font.Font(family="Helvetica", size=30, weight="bold")
         self.label = tk.Label(self.menu_frame, text="La Guerre des Frontières", font=title_font, bg="#2E2E2E", fg="#F7F7F7")
-        self.label.pack(pady=40)
+        self.label.place(relx=0.5, rely=0.12, anchor="center")
 
         separateur = ttk.Separator(self.menu_frame, orient="horizontal")
-        separateur.pack(fill="x", padx=110, pady=5)
+        separateur.place(relx=0.5, rely=0.25, anchor="center", relwidth=0.7)
 
         # Bouton pour lancer le jeu
         self.start_button = tk.Button(
@@ -65,7 +65,7 @@ class MenuPrincipal:
             padx=20,
             pady=10
         )
-        self.start_button.pack(pady=20)
+        self.start_button.place(relx=0.5, rely=0.4, anchor="center")
 
         self.charger_button = tk.Button(
             self.menu_frame,
@@ -80,7 +80,7 @@ class MenuPrincipal:
             padx=20,
             pady=10
         )
-        self.charger_button.pack(pady=20)
+        self.charger_button.place(relx=0.5, rely=0.55, anchor="center")
 
         # Bouton pour lancer les settings
         self.set_button = tk.Button(
@@ -96,7 +96,7 @@ class MenuPrincipal:
             padx=20,
             pady=10
         )
-        self.set_button.pack(pady=20)
+        self.set_button.place(relx=0.5, rely=0.7, anchor="center")
 
         # Bouton pour quitter
         self.quit_button = tk.Button(
@@ -112,7 +112,29 @@ class MenuPrincipal:
             padx=20,
             pady=10
         )
-        self.quit_button.pack(pady=20)
+        self.quit_button.place(relx=0.5, rely=0.85, anchor="center")
+        
+        self.aide_bouton = tk.Button(
+            self.menu_frame,
+            text="Aide",
+            font=("Helvetica", 16, "bold"),
+            bg="#2E2E2E",
+            fg="white",
+            activebackground="#2E2E2E",
+            activeforeground="white",
+            command=self.ouvrir_aide,
+            bd=0,
+            padx=20,
+            pady=10,
+            width=10,
+            height=2
+        )
+        self.aide_bouton.place(relx=0.77, rely=0.89)
+        
+    def ouvrir_aide(self):
+        from src.views import AideInterface
+        AideInterface = AideInterface(self.root, self.menu_frame)
+        AideInterface.afficher()
 
     def ouvrir_settings(self):
         """Lance l'interface des settings dans la même fenêtre."""

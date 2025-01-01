@@ -13,10 +13,11 @@ from collections import deque
 
 
 class Map:
-    def __init__(self, root, game_controller, case_size=50, map_data = None):
+    def __init__(self, root, game_controller, interface, case_size=50, map_data = None):
         self.root = root
         self.case_size = case_size
         self.gamecontroller = game_controller
+        self.interface = interface
 
         self.highlighted_cases = {}
 
@@ -182,7 +183,7 @@ class Map:
         from src.models import Noble, Seigneur
         # Vérifier si une action est sélectionnée
         if not self.selected_action:
-            print("Aucune action sélectionnée.")
+            self.interface.ajouter_evenement("Aucune action sélectionnée")
             return
         
         # Calculer les coordonnées de la case cliquée
@@ -269,7 +270,16 @@ class Map:
                     self.territoire_selectionne.remove(case_instance)
                     self.unhighlight_case(case_instance.row, case_instance.col)
                     print(f"Case désélectionnée : ({case_instance.row}, {case_instance.col})")
-        elif type_case == TYPE.village and self.selected_action == "guerre" and self.territoires_adjacents(self.gamecontroller.joueur, case_instance.proprietaire)and case_instance.village not in self.gamecontroller.obtenir_villages_joueur(self.gamecontroller.joueur):
+        elif self.selected_action == "guerre":
+            if type_case != TYPE.village:
+                self.interface.ajouter_evenement("Ce n'est pas un village.")
+                return
+            if case_instance.village in self.gamecontroller.obtenir_villages_joueur(self.gamecontroller.joueur):
+                self.interface.ajouter_evenement("Vous ne pouvez pas déclarer la guerre à votre propre village.")
+                return
+            if not self.territoires_adjacents(self.gamecontroller.joueur, case_instance.proprietaire):
+                self.interface.ajouter_evenement("Vous devez être adjacent au territoire ennemi pour déclarer la guerre.")
+                return
             if self.selected_action not in self.selected_villages and len(self.selected_villages)==1:
                 self.unhighlight_case(self.selected_villages[0].row, self.selected_villages[0].col)
                 self.selected_villages = []
@@ -435,8 +445,6 @@ class Map:
             # Si la case actuelle est la cible, renvoyer le chemin
             if current == goal:
                 #mettre toutes les cases de path en rouge
-                for case in path:
-                    self.highlight_case(case.row, case.col)
                 return path
 
             # Ajouter les cases adjacentes à la file

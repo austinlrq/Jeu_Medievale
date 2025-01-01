@@ -181,7 +181,6 @@ class GameController:
             pertes = int(force_defensive / 2)  # L'attaquant subit des pertes équivalentes à la moitié de la force défensive
             attaquant.armee = attaquant.armee[:len(attaquant.armee) - pertes]
             defenseur.armee = []  # Défenseur perd toute son armée
-            self.interface.ajouter_evenement(f"L'attaquant remporte la guerre contre le defenseur !\n")
             if isinstance(attaquant,Seigneur) and isinstance(defenseur,Seigneur):
                 attaquant.ajouter_vassal_seigneur(defenseur)
                 self.seigneurs_vassalisés.append(defenseur)
@@ -207,11 +206,11 @@ class GameController:
                     self.joueur = nouv_attaquant
                 if self.joueur == defenseur:
                     self.joueur = None
+            self.interface.ajouter_evenement(f"L'attaquant remporte la guerre contre le defenseur !\n")
         elif force_attaquante < force_defensive:
             pertes = int(force_attaquante / 2)  # Le défenseur subit des pertes équivalentes à la moitié de la force attaquante
             defenseur.armee = defenseur.armee[:len(defenseur.armee) - pertes]
             attaquant.armee = []  # Attaquant perd toute son armée
-            self.interface.ajouter_evenement(f"Le defenseur défend avec succès contre l'attaquant !\n")
             if isinstance(defenseur,Seigneur) and isinstance(attaquant,Seigneur):
                 defenseur.ajouter_vassal_seigneur(attaquant)
                 self.seigneurs_vassalisés.append(attaquant)
@@ -233,13 +232,13 @@ class GameController:
                     self.interface.ajouter_evenement(f"{attaquant.nom} vous a attaqué")
                 nouv_defenseur, nouv_attaquant = defenseur.devenir_seigneur(attaquant)
                 self.seigneurs.append(nouv_defenseur)
-                self.nobles.remove(attaquant)
+                self.nobles.remove(defenseur)
                 self.nobles.append(nouv_attaquant)
                 if self.joueur == defenseur:
                     self.joueur = nouv_defenseur
                 if self.joueur == attaquant:
                     self.joueur = None
-            
+            self.interface.ajouter_evenement(f"Le defenseur défend avec succès contre l'attaquant !\n")
 
         else:
             # En cas d'égalité, les deux armées s'annihilent

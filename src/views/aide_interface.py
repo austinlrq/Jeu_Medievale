@@ -15,22 +15,20 @@ class AideInterface:
         # Cache l'ancien frame
         self.frame.pack_forget()
         # Création d'un nouveau frame
-        self.frame_aide = tk.Frame(self.root, bg="#2E2E2E")
-        self.frame_aide.pack(fill="both", expand=True)
 
         # Créer le canvas pour le contenu défilant
-        self.canvas = tk.Canvas(self.frame_aide, bg="#2E2E2E")
+        self.canvas = tk.Canvas(self.root, bg="#2E2E2E", borderwidth=0, highlightthickness=0)
         self.canvas.pack(side="left", fill="both", expand=True)
 
         # Créer la scrollbar
-        self.scrollbar = tk.Scrollbar(self.frame_aide, orient="vertical", command=self.canvas.yview)
+        self.scrollbar = tk.Scrollbar(self.root, orient="vertical", command=self.canvas.yview)
         self.scrollbar.pack(side="right", fill="y")
 
         # Configurer le canvas pour utiliser la scrollbar
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
         # Créer un frame pour le contenu à l'intérieur du canvas
-        self.scrollable_frame = tk.Frame(self.canvas, bg="#2E2E2E")
+        self.scrollable_frame = tk.Frame(self.canvas, bg="#2E2E2E", borderwidth=0, highlightthickness=0)
         self.scrollable_frame.bind(
             "<Configure>",
             lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
@@ -60,12 +58,12 @@ class AideInterface:
         self.bouton_quitter.pack(side="top", anchor="nw")
 
         # Titre
-        self.title = tk.Label(self.scrollable_frame, text="Aide", font=self.title_font, bg="#2E2E2E", fg="#90EE90")
+        self.title = tk.Label(self.scrollable_frame, text="Informations", font=self.title_font, bg="#2E2E2E", fg="#90EE90")
         self.title.pack(side="top", pady=10)
 
         # Regles du jeu
         self.title_regle = tk.Label(self.scrollable_frame, text="Règles du jeu", font=self.title2_font, bg="#2E2E2E", fg="#2D8FB0", justify="left")
-        self.title_regle.pack(side="top", anchor="nw", padx=5, pady=10)
+        self.title_regle.pack(side="top", anchor="nw", padx=15, pady=10)
         self.texte_regle = tk.Label(
             self.scrollable_frame, font=self.texte_font, bg="#2E2E2E", fg="white", wraplength=800, justify="left",
             text="Le but du jeu est de devenir le seigneur le plus puissant de la région. Pour cela, vous devrez recruter des soldats, construire des bâtiments, et gérer vos ressources de manière efficace.\n"
@@ -146,7 +144,7 @@ class AideInterface:
         
         # Commandes
         self.title_commandes = tk.Label(self.scrollable_frame, text="Commandes", font=self.title2_font, bg="#2E2E2E", fg="#2D8FB0", justify="left")
-        self.title_commandes.pack(side="top", anchor="nw", padx=5, pady=10)
+        self.title_commandes.pack(side="top", anchor="nw", padx=15, pady=10)
         self.texte_commandes = tk.Label(
             self.scrollable_frame, font=self.texte_font, bg="#2E2E2E", fg="white", wraplength=800, justify="left",
             text=
@@ -160,7 +158,7 @@ class AideInterface:
         
         # Credits
         self.title_credits = tk.Label(self.scrollable_frame, text="Crédits", font=self.title2_font, bg="#2E2E2E", fg="#2D8FB0", justify="left")
-        self.title_credits.pack(side="top", anchor="nw", padx=5, pady=10)
+        self.title_credits.pack(side="top", anchor="nw", padx=15, pady=10)
         self.texte_credits = tk.Label(
             self.scrollable_frame, font=self.texte_font, bg="#2E2E2E", fg="white", wraplength=800, justify="left",
             text="Développé par : \n\n"+
@@ -181,7 +179,7 @@ class AideInterface:
         # Ajuster la taille de scrollable_frame pour qu'il prenne toute la place dans le canvas
         self.canvas.itemconfig(self.window_id,  width=event.width)
         self.canvas.config(scrollregion=self.canvas.bbox("all"))
-        self.scrollbar.lift(self.canvas)
+        #self.scrollbar.lift(self.canvas)
         self.texte_regle.config(wraplength=event.width-70)
         self.texte_terrains.config(wraplength=event.width-70)
         self.texte_batiments.config(wraplength=event.width-70)
@@ -194,5 +192,7 @@ class AideInterface:
         
     def quitter(self):
         """Retour au menu principal."""
-        self.frame_aide.pack_forget()
+        self.canvas.pack_forget()
+        self.scrollable_frame.pack_forget()
+        self.scrollbar.pack_forget()
         self.frame.pack(fill="both", expand=True)
