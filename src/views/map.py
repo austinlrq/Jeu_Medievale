@@ -336,27 +336,12 @@ class Map:
         case_instance = self.grid[row][col] # Récupère l'objet Case associé
 
         # Vérifier si un village est associé à la case
-        village = case_instance.village  # Méthode pour récupérer le village
-        if village:
-            self.interface.mettre_a_jour_infos_village(village)
+        if case_instance.village or case_instance.batiment == "camp":
+            village =  case_instance.village
+            self.interface.mettre_a_jour_infos_village(case_instance)
             self.interface.action_bouton_selectionnee = None
-            self.village_affiché = village
+            self.village_affiché = case_instance
 
-        # def get_village(self, row, col):
-        #     """
-        #     Retourne le village associé à une case donnée (row, col), ou None si vide.
-        #     """
-        #     # Calculer les coordonnées de la case cliquée
-        #     row = event.y // self.case_size + self.map_compenser_y
-        #     col = event.x // self.case_size + self.map_compenser_x
-    
-        #     # Récupérer les données de la caseule
-        #     case_instance = self.grid[row][col] # Récupère l'objet Case associé
-    
-        #     # Vérifier si la caseule est un village
-        #     village = case_instance.type
-        #     self.village_affiché = village
-        #     return village
 
     def get_voisins(self, case):
         """Retourne les voisins (haut, bas, gauche, droite) d'une case."""

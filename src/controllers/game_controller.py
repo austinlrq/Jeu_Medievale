@@ -268,17 +268,7 @@ class GameController:
             print("seigneur:",self.seigneurs[0].seigneur)"""
 
         self.tour += 1
-        #self.appliquer_evenements(self.nobles)
-        #self.appliquer_evenements(self.seigneurs)
-        #self.verifier_declenchement_guerre(self.seigneurs)
-        #self.verifier_declenchement_guerre(self.nobles)
-        """for village in self.villages:
-            village.afficher_statut()
-        for noble in self.nobles:
-            noble.__str__()
-        for seigneur in self.seigneurs:
-            seigneur.__str__()"""
-        #produire les ressources de tous les personnages
+        
         for seigneur in self.seigneurs:
             total = seigneur.produire_ressources()
             if len(seigneur.armee) != 0:
@@ -303,10 +293,14 @@ class GameController:
                     seigneur.augmenter_ressources(7)
                     eau+=7
             if seigneur==self.joueur:
-                self.interface.ajouter_evenement(f"Le village a produit {total} ressources.\n")
-                self.interface.ajouter_evenement(f"Le village a produit {montagne} argent grace aux montagnes")
-                self.interface.ajouter_evenement(f"Le village a produit {foret} ressources grace aux forets")
-                self.interface.ajouter_evenement(f"Le village a produit {eau} ressources grace aux eaux\n")
+                if total:
+                    self.interface.ajouter_evenement(f"Le village a produit {total} ressources.\n")
+                    if montagne:
+                        self.interface.ajouter_evenement(f"Le village a produit {montagne} argent grace aux montagnes")
+                    if foret:
+                        self.interface.ajouter_evenement(f"Le village a produit {foret} ressources grace aux forets")
+                    if eau:
+                        self.interface.ajouter_evenement(f"Le village a produit {eau} ressources grace aux eaux\n")
             
         for noble in self.nobles:
             if noble.seigneur==None:
@@ -333,44 +327,22 @@ class GameController:
                         noble.augmenter_ressources(7)
                         eau+=7
                 if noble==self.joueur:
-                    self.interface.ajouter_evenement(f"Le village a produit {total} ressources.\n")
-                    self.interface.ajouter_evenement(f"Le village a produit {montagne} argent grace aux montagnes")
-                    self.interface.ajouter_evenement(f"Le village a produit {foret} ressources grace aux forets")
-                    self.interface.ajouter_evenement(f"Le village a produit {eau} ressources grace aux eaux\n")
-        action_bots(self)
-    
-
-    # def verifier_declenchement_guerre(self, seigneurs: List[Seigneur]):
-    #     """Détermine si une guerre doit se déclencher entre deux seigneurs aléatoires."""
-    #     if random.random() < 0.1:  # Exemple de probabilité de guerre
-    #         attaquant = random.choice(seigneurs)
-    #         defenseur = random.choice([s for s in seigneurs if s != attaquant])
-    #         guerre = GuerreCaracteristique(attaquant, defenseur)
-    #         self.guerres.append(guerre)
-    #         guerre.declencher()  # Déclenche la guerre et applique les conséquences
-
-
-"""self.roturier1 = Roturier("Roturier 1", 20, 10, 10, 10, 5)
-        self.roturier2 = Roturier("Roturier 2", 20, 10, 10, 10, 5)
-        self.paysan1 = Paysan("Paysan 1", 20, 20, 15, 5)
-
-        self.joueur = Noble("joueur", 20, 10, 10, 5)
-
-        # Création du village
-        self.village_joueur = Village("Village du Joueur")
-        self.village_joueur.ajouter_habitant(self.roturier1)
-        self.village_joueur.ajouter_habitant(self.roturier2)
-        self.village_joueur.ajouter_habitant(self.paysan1)
-
-        self.joueur.ajouter_village(self.village_joueur)
-
-        #self.village_joueur.afficher_statut()
-        # Calcul de la production et perception des impôts
-        #self.village_joueur.produire_ressources()
-        self.immigration_action = Immigration(self.joueur)
-        self.immigration_action.immigrer("roturier")
-        self.seigneur = self.joueur.devenir_seigneur()
+                    if total:
+                        self.interface.ajouter_evenement(f"Le village a produit {total} ressources.\n")
+                        if montagne:
+                            self.interface.ajouter_evenement(f"Le village a produit {montagne} argent grace aux montagnes")
+                        if foret:
+                            self.interface.ajouter_evenement(f"Le village a produit {foret} ressources grace aux forets")
+                        if eau:
+                            self.interface.ajouter_evenement(f"Le village a produit {eau} ressources grace aux eaux\n")
         
-        self.seigneur.__str__()
-        # Afficher le statut du village
-        self.village_joueur.afficher_statut()"""
+        action_bots(self)
+
+        for village in self.villages:
+            for habitant in village.habitants:
+                if habitant.mort_aleatoire():
+                    village.habitants.remove(habitant)
+                    self.interface.ajouter_evenement(f"Un habitant est mort de vieillesse.\n")
+                else:
+                    habitant.vieillir()
+                print(habitant.age)

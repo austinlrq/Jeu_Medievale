@@ -8,7 +8,6 @@ class Personne:
     def __init__(self, nom: str, age: int, ressources: int, argent: int, bonheur: int):
         self.nom = nom
         self.age = age
-        self.esperance_de_vie = random.randint(60, 80)
         self.ressources = ressources
         self.argent = argent
         self.bonheur = bonheur
@@ -17,7 +16,6 @@ class Personne:
         return (
             f"Nom : {self.nom}, "
             f"Âge : {self.age}, "
-            f"Esperence de vie : {self.esperance_de_vie}, "
             f"Ressources : {self.ressources}, "
             f"Argent : {self.argent}, "
             f"Bonheur : {self.bonheur}"
@@ -50,7 +48,6 @@ class Personne:
     def vieillir(self):
         """Augmente l'âge du personnage et vérifie s'il meurt aléatoirement."""
         self.age += 1
-        return self.mort_aleatoire()
 
     def mort_aleatoire(self):
         """Détermine si le personnage meurt en fonction de son âge."""
@@ -62,7 +59,6 @@ class Personne:
         return {
             "nom": self.nom,
             "age": self.age,
-            "esperance_de_vie": self.esperance_de_vie,
             "ressources": self.ressources,
             "argent": self.argent,
             "bonheur": self.bonheur

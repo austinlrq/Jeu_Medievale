@@ -11,7 +11,7 @@ class Noble(Personne):
     """
     from src.views import Case
 
-    def __init__(self, nom: str, age: int, ressources: int, argent: int, bonheur: int, couleur_bordure="#FFFFFF", capacite_habitants=10, capacite_soldats=5):
+    def __init__(self, nom: str, age: int, ressources: int, argent: int, bonheur: int, couleur_bordure="#FFFFFF", capacite_habitants=10, capacite_soldats=0):
         super().__init__(nom, age, ressources, argent, bonheur)
         self.couleur_bordure = couleur_bordure  # Couleur unique pour le seigneur
         self.village_noble = None

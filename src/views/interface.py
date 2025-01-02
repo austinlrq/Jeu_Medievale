@@ -21,7 +21,7 @@ class JeuInterface:
         # Cadre pour l'affichage des informations en haut
         self.info_frame = tk.Frame(self.main_frame, height=50, bg="#3A3A3A")
         self.info_frame.pack(fill="x", pady=0)
-        self.afficher_bouton_aide()
+        self.afficher_bouton_pause()
         self.afficher_informations()
 
         # Gestion de l'événement Échap pour ouvrir le menu pause
@@ -125,12 +125,34 @@ class JeuInterface:
         """Affiche le menu de pause (superposé à l'interface du jeu)"""
         self.root.bind("<Escape>", self.continuer_jeu)
         
+        try:
+            # Supprimer Aideinterface si elle existe
+            self.AideInterface.quitter()
+        except:
+            pass
+        
         self.menu_frame = tk.Frame(self.root,bg="#2E2E2E")
+        
+        # Ajouter le bouton "Retour"
+        self.bouton_quitter = tk.Button(
+            self.menu_frame, 
+            text="<  Retour", 
+            command=self.continuer_jeu, 
+            font=("Helvetica", 16, "bold"),
+            bg="#2E2E2E",
+            fg="white",
+            activebackground="#2E2E2E",
+            activeforeground="white",
+            bd=0,
+            padx=10,
+            pady=5
+        )
+        self.bouton_quitter.pack(side="top", anchor="nw")
         
         texte_menu = tk.Label(self.menu_frame, text="Menu Pause", font=("Helvetica", 24, "bold"), bg="#2E2E2E", fg="#F7F7F7", width=20, height=2)
         texte_menu.place(relx=0.5, rely=0.12, anchor="center")
         # Bouton Continuer
-        continue_button = tk.Button(self.menu_frame, text="Reprendre", command=self.continuer_jeu, width=20, height=2,
+        continue_button = tk.Button(self.menu_frame, text="informations", command=self.show_help, width=20, height=2,
                                     font=("Helvetica", 16, "bold"),
                                     bg="#1C6E8C",
                                     fg="white",
@@ -187,6 +209,11 @@ class JeuInterface:
 
     def continuer_jeu(self, event=None):
         """Cache le menu de pause et reprend le jeu"""
+        try:
+            # Supprimer Aideinterface si elle existe
+            self.AideInterface.quitter()
+        except:
+            pass
         self.menu_frame.place_forget()  # Cache le menu de pause
         self.map.drag_manager.load_sensi()
         self.root.bind("<Escape>", self.ouvrir_menu_pause)
@@ -208,25 +235,43 @@ class JeuInterface:
         else:
             return False
     
-    def show_help(self, event):
+    def show_help(self):
         # Afficher une boîte de message avec les explications du jeu
         from src.views import AideInterface
-        AideInterface = AideInterface(self.root, self.main_frame)
-        AideInterface.afficher()
+        #self.root.bind("<Escape>", self.continuer_jeu)
+        self.AideInterface = AideInterface(self.root, self.main_frame)
+        self.AideInterface.afficher()
+        
 
-    def afficher_bouton_aide(self):
+    def afficher_bouton_pause(self):
         # Créer le canvas pour le point d'interrogation
         self.help_canvas = tk.Canvas(self.info_frame, width=30, height=30, bg="#3A3A3A", highlightthickness=0)
         self.help_canvas.pack(side="left", padx=0)  # Positionner en haut à gauche
 
-        # Dessiner le rond blanc
-        self.help_canvas.create_oval(5, 5, 25, 25, fill="#3A3A3A",outline='white')
+        # Dessiner un carré avec des coins arrondis sans traits à l'intérieur
+        radius = 5
+        self.help_canvas.create_arc(5, 5, 5 + 2*radius, 5 + 2*radius, start=90, extent=90, fill="#3A3A3A", outline='white')
+        self.help_canvas.create_arc(25 - 2*radius, 5, 25, 5 + 2*radius, start=0, extent=90, fill="#3A3A3A", outline='white')
+        self.help_canvas.create_arc(25 - 2*radius, 25 - 2*radius, 25, 25, start=270, extent=90, fill="#3A3A3A", outline='white')
+        self.help_canvas.create_arc(5, 25 - 2*radius, 5 + 2*radius, 25, start=180, extent=90, fill="#3A3A3A", outline='white')
+        self.help_canvas.create_polygon(
+            5 + radius, 5,
+            25 - radius, 5,
+            25, 5 + radius,
+            25, 25 - radius,
+            25 - radius, 25,
+            5 + radius, 25,
+            5, 25 - radius,
+            5, 5 + radius,
+            outline='white', fill="#3A3A3A"
+        )
 
-        # Dessiner le point d'interrogation
-        self.help_canvas.create_text(15, 15, text="?", fill="white", font=("Helvetica", 12, "bold"))
+        # Dessiner les barres verticales pour le bouton pause
+        self.help_canvas.create_rectangle(11, 10, 13, 20, fill="white", outline="white")
+        self.help_canvas.create_rectangle(17, 10, 19, 20, fill="white", outline="white")
 
         # Rendre le canvas cliquable
-        self.help_canvas.bind("<Button-1>", self.show_help)
+        self.help_canvas.bind("<Button-1>", self.ouvrir_menu_pause)
 
     def afficher_informations(self):
         label_font = font.Font(family="Helvetica", size=14, weight="bold")
@@ -259,7 +304,7 @@ class JeuInterface:
         self.journal_text.see(tk.END)  # Scroller automatiquement vers le bas
         self.journal_text.config(state=tk.DISABLED)  # Rebloquer le widget
 
-    def mettre_a_jour_infos_village(self, village):
+    def mettre_a_jour_infos_village(self, case):
         """
         Met à jour les informations affichées sur le village sélectionné.
         """
@@ -276,14 +321,42 @@ class JeuInterface:
             anchor="center"
         )
         self.village_info_label.pack(fill="both", expand=True, padx=3, pady=(0,0))
-        if village:
-            infos = (
-                f"                {village.case.proprietaire.nom}\n\n"
-                f"Population : {village.population}\n"
-                f"Ressources habitants : {village.total_ressources}\n"
-                f"Argent habitants : {village.total_argent}"
-                #f"Seigneur : {village.seigneur.nom if village.seigneur else 'Aucun'}"
-            )
+        
+        if case:
+            if not case.batiment:
+                village = case.village
+                infos = (
+                    f"                {village.case.proprietaire.nom}\n\n"
+                    f"Population : {village.population}\n"
+                    f"Ressources habitants : {village.total_ressources}\n"
+                    f"Argent habitants : {village.total_argent}"
+                    #f"Seigneur : {village.seigneur.nom if village.seigneur else 'Aucun'}"
+                )
+            elif case.batiment == "camp":
+                # Afficher que les informations de l'armée, soldats
+                liste_inf=[]
+                liste_cav=[]
+                for i in case.proprietaire.armee:
+                    if i.type_soldat == "Infanterie":
+                        liste_inf+=[i]
+                    elif i.type_soldat == "Cavalier":
+                        liste_cav+=[i]
+                if case.proprietaire != self.gamecontroller.joueur:
+                    infos = (
+                        f"      {case.proprietaire.nom}\n\n"
+                        f"Soldats : {len(case.proprietaire.armee)}/{case.proprietaire.capacite_soldats}\n"
+                        f"Infanterie : * * *\n"
+                        f"Cavaliers : * * *\n"
+                        f"Puissance : * * *"
+                    )
+                else:
+                    infos = (
+                        f"      {case.proprietaire.nom}\n\n"
+                        f"Soldats : {len(case.proprietaire.armee)}/{case.proprietaire.capacite_soldats}\n"
+                        f"Infanterie : {len(liste_inf)}\n"
+                        f"Cavaliers : {len(liste_cav)}\n"
+                        f"Puissance : {sum(soldat.force for soldat in case.proprietaire.armee)}"
+                    )
         else:
             infos = "Ctrl + Clique gauche sur un village pour voir ses informations"
 
@@ -754,7 +827,6 @@ class JeuInterface:
             
             elif self.action_selectionnee == "paysan" or self.action_selectionnee == "roturier":
                 if self.map.selected_villages != []:
-                    self.ajouter_evenement("Action exécutée: Immigration\n")
                     for village in self.map.selected_villages:
                         immigration = Immigration(village.noble)
                         if self.gamecontroller.obtenir_nombre_total_personnes(self.gamecontroller.joueur) >= self.gamecontroller.joueur.capacite_habitants:
@@ -765,6 +837,7 @@ class JeuInterface:
                                 self.ajouter_evenement("Vous n'avez pas assez d'argent pour immigrer un roturier")
                                 return
                             self.afficher_tour_journal()
+                            self.ajouter_evenement("Action exécutée: Immigration\n")
                             immigration.immigrer("roturier")
                             self.ajouter_evenement("Roturier immigré\n")
                         elif self.action_selectionnee == "paysan":
@@ -772,6 +845,7 @@ class JeuInterface:
                                 self.ajouter_evenement("Vous n'avez pas assez d'argent pour immigrer un paysan")
                                 return
                             self.afficher_tour_journal()
+                            self.ajouter_evenement("Action exécutée: Immigration\n")
                             immigration.immigrer("paysan")
                             self.ajouter_evenement("Paysan immigré\n")
                     

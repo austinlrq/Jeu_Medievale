@@ -9,6 +9,7 @@ class AideInterface:
         self.texte_font = font.Font(family="Helvetica", size=16)
         self.texte_font_souligné = font.Font(family="Helvetica", size=18, underline=True)
         self.frame = frame
+        #self.root.bind("<Escape>", self.quitter)
 
     def afficher(self):
         """Affichage de l'interface d'aide."""
@@ -196,3 +197,4 @@ class AideInterface:
         self.scrollable_frame.pack_forget()
         self.scrollbar.pack_forget()
         self.frame.pack(fill="both", expand=True)
+        
